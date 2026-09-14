@@ -1,0 +1,642 @@
+{
+  "summary": {
+    "model": "fable",
+    "effort": "high",
+    "contracts_evaluated": 10,
+    "contracts_failed": 0,
+    "exact_match_all_8": 0,
+    "label_agreement": 0.725,
+    "hamming_loss": 0.275,
+    "per_category": {
+      "Reentrancy": {
+        "tp": 0,
+        "tn": 5,
+        "fp": 0,
+        "fn": 5,
+        "dive_positives": 5,
+        "llm_positives": 0,
+        "agreement": 0.5,
+        "precision_vs_dive": null,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": 0.0
+      },
+      "Access Control": {
+        "tp": 0,
+        "tn": 7,
+        "fp": 0,
+        "fn": 3,
+        "dive_positives": 3,
+        "llm_positives": 0,
+        "agreement": 0.7,
+        "precision_vs_dive": null,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": 0.0
+      },
+      "Arithmetic": {
+        "tp": 1,
+        "tn": 8,
+        "fp": 0,
+        "fn": 1,
+        "dive_positives": 2,
+        "llm_positives": 1,
+        "agreement": 0.9,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 0.5,
+        "f1_vs_dive": 0.6667,
+        "cohens_kappa": 0.6154
+      },
+      "Unchecked Return Values": {
+        "tp": 2,
+        "tn": 7,
+        "fp": 0,
+        "fn": 1,
+        "dive_positives": 3,
+        "llm_positives": 2,
+        "agreement": 0.9,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 0.6667,
+        "f1_vs_dive": 0.8,
+        "cohens_kappa": 0.7368
+      },
+      "DoS": {
+        "tp": 0,
+        "tn": 2,
+        "fp": 0,
+        "fn": 8,
+        "dive_positives": 8,
+        "llm_positives": 0,
+        "agreement": 0.2,
+        "precision_vs_dive": null,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": 0.0
+      },
+      "Bad Randomness": {
+        "tp": 0,
+        "tn": 10,
+        "fp": 0,
+        "fn": 0,
+        "dive_positives": 0,
+        "llm_positives": 0,
+        "agreement": 1.0,
+        "precision_vs_dive": null,
+        "recall_vs_dive": null,
+        "f1_vs_dive": null,
+        "cohens_kappa": null
+      },
+      "Front Running": {
+        "tp": 0,
+        "tn": 7,
+        "fp": 2,
+        "fn": 1,
+        "dive_positives": 1,
+        "llm_positives": 2,
+        "agreement": 0.7,
+        "precision_vs_dive": 0.0,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": -0.1538
+      },
+      "Time manipulation": {
+        "tp": 0,
+        "tn": 9,
+        "fp": 0,
+        "fn": 1,
+        "dive_positives": 1,
+        "llm_positives": 0,
+        "agreement": 0.9,
+        "precision_vs_dive": null,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": 0.0
+      }
+    },
+    "timing": {
+      "run_wall_seconds": 528.86,
+      "sum_per_call_wall_seconds": 528.85,
+      "sum_cli_duration_ms": 520515,
+      "sum_api_duration_ms": 528820,
+      "mean_wall_seconds_per_contract": 52.89
+    },
+    "tokens": {
+      "input_tokens": 38,
+      "output_tokens": 16741,
+      "cache_creation_input_tokens": 53887,
+      "cache_read_input_tokens": 69679,
+      "total_tokens": 140345
+    },
+    "cost_usd": 2.0119
+  },
+  "records": [
+    {
+      "contractID": "1",
+      "source_chars": 6973,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.95,
+        "Access Control": 0.92,
+        "Arithmetic": 0.98,
+        "Unchecked Return Values": 0.95,
+        "DoS": 0.97,
+        "Bad Randomness": 0.99,
+        "Front Running": 0.95,
+        "Time manipulation": 0.99
+      },
+      "reasons": {},
+      "agreement": 7,
+      "wall_seconds": 13.98,
+      "cli_duration_ms": 12777,
+      "api_duration_ms": 13515,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 862,
+        "cache_creation_input_tokens": 5125,
+        "cache_read_input_tokens": 4332,
+        "total_tokens": 10323
+      },
+      "cost_usd": 0.15246099999999999,
+      "num_turns": 2,
+      "session_id": "c6b9f1fd-17d6-4e7c-9223-01ba77641db7"
+    },
+    {
+      "contractID": "2",
+      "source_chars": 1069,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.9,
+        "Access Control": 0.85,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.9,
+        "DoS": 0.85,
+        "Bad Randomness": 0.97,
+        "Front Running": 0.8,
+        "Time manipulation": 0.97
+      },
+      "reasons": {},
+      "agreement": 6,
+      "wall_seconds": 18.61,
+      "cli_duration_ms": 17803,
+      "api_duration_ms": 18493,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1183,
+        "cache_creation_input_tokens": 1626,
+        "cache_read_input_tokens": 3866,
+        "total_tokens": 6679
+      },
+      "cost_usd": 0.09648599999999999,
+      "num_turns": 2,
+      "session_id": "e6e69a5c-5b60-4068-95ea-98540f74a778"
+    },
+    {
+      "contractID": "3",
+      "source_chars": 6687,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.95,
+        "Access Control": 0.95,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.9,
+        "DoS": 0.9,
+        "Bad Randomness": 0.98,
+        "Front Running": 0.95,
+        "Time manipulation": 0.98
+      },
+      "reasons": {},
+      "agreement": 7,
+      "wall_seconds": 12.32,
+      "cli_duration_ms": 11497,
+      "api_duration_ms": 12325,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 700,
+        "cache_creation_input_tokens": 3245,
+        "cache_read_input_tokens": 6000,
+        "total_tokens": 9949
+      },
+      "cost_usd": 0.10853299999999999,
+      "num_turns": 2,
+      "session_id": "0a36869e-0783-4b59-9462-73df084e5058"
+    },
+    {
+      "contractID": "4",
+      "source_chars": 13524,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.9,
+        "Access Control": 0.92,
+        "Arithmetic": 0.85,
+        "Unchecked Return Values": 0.65,
+        "DoS": 0.85,
+        "Bad Randomness": 0.97,
+        "Front Running": 0.8,
+        "Time manipulation": 0.97
+      },
+      "reasons": {
+        "Unchecked Return Values": "In destroyChildren, the return value of `mk_contract_address(this, i).call()` is ignored, so (as the contract's own comment admits) if the child's SELFDESTRUCT fails due to insufficient gas the tokens are still burned with no gas refund to the user."
+      },
+      "agreement": 6,
+      "wall_seconds": 23.55,
+      "cli_duration_ms": 22734,
+      "api_duration_ms": 23722,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1671,
+        "cache_creation_input_tokens": 6299,
+        "cache_read_input_tokens": 8288,
+        "total_tokens": 16262
+      },
+      "cost_usd": 0.222366,
+      "num_turns": 2,
+      "session_id": "9850e55b-e488-4b02-9864-31c8db11c362"
+    },
+    {
+      "contractID": "5",
+      "source_chars": 4543,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.85,
+        "Access Control": 0.8,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.85,
+        "DoS": 0.8,
+        "Bad Randomness": 0.97,
+        "Front Running": 0.7,
+        "Time manipulation": 0.97
+      },
+      "reasons": {},
+      "agreement": 6,
+      "wall_seconds": 307.82,
+      "cli_duration_ms": 307020,
+      "api_duration_ms": 307183,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1373,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 3374,
+        "total_tokens": 4749
+      },
+      "cost_usd": 0.06486,
+      "num_turns": 2,
+      "session_id": "be6804de-c4fb-4b32-972e-34bfc9fd90c0"
+    },
+    {
+      "contractID": "6",
+      "source_chars": 20119,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.15,
+        "Access Control": 0.3,
+        "Arithmetic": 0.75,
+        "Unchecked Return Values": 0.85,
+        "DoS": 0.15,
+        "Bad Randomness": 0.03,
+        "Front Running": 0.6,
+        "Time manipulation": 0.2
+      },
+      "reasons": {
+        "Arithmetic": "Pre-0.8 code without SafeMath deliberately underflows arguments[0].count via count-- from 0 in ProperProposal.vote/argue (and negates it in voteCount), wrapping uint256 values used in vote tallies.",
+        "Unchecked Return Values": "rescueToken ignores the bool returned by _token.transfer, so a false-returning ERC20 fails silently; Vote.transfer's false return is likewise unchecked by callers.",
+        "Front Running": "rescueToken lets anyone claim mistakenly-sent tokens first-come-first-served, so an observer can front-run the rightful owner's rescue transaction; approve also has the standard allowance race."
+      },
+      "agreement": 3,
+      "wall_seconds": 82.23,
+      "cli_duration_ms": 81557,
+      "api_duration_ms": 82501,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 6323,
+        "cache_creation_input_tokens": 14039,
+        "cache_read_input_tokens": 11011,
+        "total_tokens": 31377
+      },
+      "cost_usd": 0.6144990000000001,
+      "num_turns": 2,
+      "session_id": "a1f8de33-f281-4e64-8a56-52eb5bbd98c8"
+    },
+    {
+      "contractID": "7",
+      "source_chars": 6757,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.95,
+        "Access Control": 0.9,
+        "Arithmetic": 0.97,
+        "Unchecked Return Values": 0.92,
+        "DoS": 0.95,
+        "Bad Randomness": 0.98,
+        "Front Running": 0.93,
+        "Time manipulation": 0.98
+      },
+      "reasons": {},
+      "agreement": 7,
+      "wall_seconds": 12.45,
+      "cli_duration_ms": 11643,
+      "api_duration_ms": 12648,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 788,
+        "cache_creation_input_tokens": 3033,
+        "cache_read_input_tokens": 5851,
+        "total_tokens": 9676
+      },
+      "cost_usd": 0.108379,
+      "num_turns": 2,
+      "session_id": "e428b949-f6f4-47b7-93e0-433a0eda2785"
+    },
+    {
+      "contractID": "8",
+      "source_chars": 6972,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.95,
+        "Access Control": 0.9,
+        "Arithmetic": 0.98,
+        "Unchecked Return Values": 0.92,
+        "DoS": 0.95,
+        "Bad Randomness": 0.98,
+        "Front Running": 0.93,
+        "Time manipulation": 0.98
+      },
+      "reasons": {},
+      "agreement": 7,
+      "wall_seconds": 12.83,
+      "cli_duration_ms": 12037,
+      "api_duration_ms": 13169,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 707,
+        "cache_creation_input_tokens": 3409,
+        "cache_read_input_tokens": 5992,
+        "total_tokens": 10112
+      },
+      "cost_usd": 0.112118,
+      "num_turns": 2,
+      "session_id": "13d2bae4-f074-4650-8d4a-0c3031f5963e"
+    },
+    {
+      "contractID": "9",
+      "source_chars": 2400,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.85,
+        "Access Control": 0.95,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.9,
+        "DoS": 0.95,
+        "Bad Randomness": 0.98,
+        "Front Running": 0.6,
+        "Time manipulation": 0.98
+      },
+      "reasons": {
+        "Front Running": "approve() sets allowance directly to a new value without requiring it be reset to zero first, enabling the classic ERC20 approve/transferFrom front-running race where a spender can consume both the old and new allowance."
+      },
+      "agreement": 6,
+      "wall_seconds": 15.92,
+      "cli_duration_ms": 15117,
+      "api_duration_ms": 15756,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1105,
+        "cache_creation_input_tokens": 1856,
+        "cache_read_input_tokens": 4416,
+        "total_tokens": 7381
+      },
+      "cost_usd": 0.098215,
+      "num_turns": 2,
+      "session_id": "dba2b21e-100d-4ad2-b3af-e956e99d6db9"
+    },
+    {
+      "contractID": "10",
+      "source_chars": 34559,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.9,
+        "Access Control": 0.85,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.9,
+        "DoS": 0.85,
+        "Bad Randomness": 0.98,
+        "Front Running": 0.6,
+        "Time manipulation": 0.85
+      },
+      "reasons": {},
+      "agreement": 3,
+      "wall_seconds": 29.15,
+      "cli_duration_ms": 28330,
+      "api_duration_ms": 29508,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 2029,
+        "cache_creation_input_tokens": 15255,
+        "cache_read_input_tokens": 16549,
+        "total_tokens": 33837
+      },
+      "cost_usd": 0.433974,
+      "num_turns": 2,
+      "session_id": "daa8d10b-7d57-4013-869c-8e139d488bba"
+    }
+  ]
+}

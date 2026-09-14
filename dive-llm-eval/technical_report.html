@@ -1,0 +1,921 @@
+<title>Static Pre-Slicing for LLM Contract Auditing</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<style>
+:root{
+  --paper:#ffffff; --card:#fbfcfd; --sunk:#f0f3f6; --rail:#f6f8fa;
+  --ink:#0f1419; --ink-2:#4b5866; --ink-3:#7d8996;
+  --rule:#dbe1e8; --rule-2:#eaeff4;
+  --accent:#1f6fb2; --good:#00937f; --bad:#c2621f; --alt:#8a4fa8;
+  --good-wash:rgba(0,147,127,.09); --bad-wash:rgba(194,98,31,.09);
+  --hl:rgba(31,111,178,.07);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0f1317; --card:#161b21; --sunk:#1c232b; --rail:#141a20;
+  --ink:#e9eef3; --ink-2:#a7b3c0; --ink-3:#79848f;
+  --rule:#293440; --rule-2:#1f2731;
+  --accent:#4d9ad9; --good:#26b39c; --bad:#e08542; --alt:#ab74c9;
+  --good-wash:rgba(38,179,156,.12); --bad-wash:rgba(224,133,66,.12);
+  --hl:rgba(77,154,217,.10);
+}}
+:root[data-theme="dark"]{
+  --paper:#0f1317; --card:#161b21; --sunk:#1c232b; --rail:#141a20;
+  --ink:#e9eef3; --ink-2:#a7b3c0; --ink-3:#79848f;
+  --rule:#293440; --rule-2:#1f2731;
+  --accent:#4d9ad9; --good:#26b39c; --bad:#e08542; --alt:#ab74c9;
+  --good-wash:rgba(38,179,156,.12); --bad-wash:rgba(224,133,66,.12);
+  --hl:rgba(77,154,217,.10);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,"Times New Roman",serif;
+  font-size:16.5px; line-height:1.68; -webkit-font-smoothing:antialiased;
+}
+.doc{max-width:940px; margin:0 auto; padding:56px 32px 110px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums}
+.sans{font-family:"Source Sans 3",-apple-system,"Segoe UI",sans-serif}
+p{margin:0; max-width:70ch}
+h1,h2,h3,h4{margin:0; text-wrap:balance}
+a{color:var(--accent)}
+
+/* ---------- title block ---------- */
+.title{border-bottom:2px solid var(--ink); padding-bottom:30px; display:flex; flex-direction:column; gap:14px}
+.kicker{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+h1{font-size:38px; font-weight:700; line-height:1.14; letter-spacing:-.018em; max-width:22ch}
+.subtitle{font-size:19px; color:var(--ink-2); max-width:62ch; line-height:1.5}
+.byline{
+  font-family:"Source Sans 3",sans-serif; font-size:13.5px; color:var(--ink-3);
+  display:flex; flex-wrap:wrap; gap:6px 20px; padding-top:6px;
+}
+.byline b{color:var(--ink-2); font-weight:600}
+
+/* ---------- abstract ---------- */
+.abstract{
+  background:var(--rail); border:1px solid var(--rule); padding:26px 28px;
+  display:flex; flex-direction:column; gap:12px; margin-top:36px;
+}
+.abstract h2{font-family:"Source Sans 3",sans-serif; font-size:12px; font-weight:700;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3)}
+.abstract p{font-size:16px; max-width:74ch}
+
+/* ---------- sections ---------- */
+section{margin-top:52px; display:flex; flex-direction:column; gap:20px}
+.h2row{display:flex; gap:16px; align-items:baseline; border-bottom:1px solid var(--rule); padding-bottom:11px}
+.h2row .num{
+  font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:500;
+  color:var(--accent); flex:none; min-width:24px;
+}
+h2{font-size:25px; font-weight:600; letter-spacing:-.012em}
+h3{
+  font-family:"Source Sans 3",sans-serif; font-size:16px; font-weight:700;
+  letter-spacing:-.005em; margin-top:12px; display:flex; gap:12px; align-items:baseline;
+}
+h3 .num{font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:500; color:var(--ink-3); flex:none}
+.body{display:flex; flex-direction:column; gap:16px}
+
+ul,ol{margin:0; padding-left:22px; display:flex; flex-direction:column; gap:10px; max-width:70ch}
+li::marker{color:var(--ink-3)}
+li strong{font-weight:600}
+code{font-family:"IBM Plex Mono",monospace; font-size:.86em; background:var(--sunk);
+  padding:1.5px 5px; border-radius:3px; color:var(--ink)}
+.finding{
+  border-left:3px solid var(--accent); background:var(--hl);
+  padding:16px 20px; display:flex; flex-direction:column; gap:8px; max-width:74ch;
+}
+.finding.warn{border-left-color:var(--bad); background:var(--bad-wash)}
+.finding .lbl{font-family:"Source Sans 3",sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3)}
+.finding p{font-size:15.5px}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto; border:1px solid var(--rule); background:var(--card)}
+table{border-collapse:collapse; width:100%; min-width:580px;
+  font-family:"Source Sans 3",sans-serif; font-size:13.5px}
+th,td{padding:9px 14px; text-align:right; border-bottom:1px solid var(--rule-2); white-space:nowrap}
+th:first-child,td:first-child{text-align:left; white-space:normal; min-width:150px}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3);
+  background:var(--sunk); border-bottom:1px solid var(--rule); vertical-align:bottom;
+}
+tbody tr:last-child td{border-bottom:none}
+td.n{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+td.d{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-weight:600}
+td.d.up{color:var(--good); background:var(--good-wash)}
+td.d.dn{color:var(--bad); background:var(--bad-wash)}
+td.d.z{color:var(--ink-3)}
+td.rx{font-family:"IBM Plex Mono",monospace; font-size:11.5px; white-space:normal;
+  text-align:left; color:var(--ink-2); line-height:1.55; min-width:260px}
+tr.tot td{font-weight:700; background:var(--sunk); border-top:1px solid var(--rule)}
+caption{caption-side:top; text-align:left; padding:11px 14px; font-family:"Source Sans 3",sans-serif;
+  font-size:12.5px; color:var(--ink-3); border-bottom:1px solid var(--rule-2); background:var(--card)}
+caption b{color:var(--ink-2); font-weight:600}
+
+/* ---------- figures ---------- */
+figure{margin:0; background:var(--card); border:1px solid var(--rule); padding:22px 20px 16px;
+  display:flex; flex-direction:column; gap:14px}
+figure svg{display:block; width:100%; height:auto; color:var(--ink-2)}
+figcaption{font-family:"Source Sans 3",sans-serif; font-size:12.5px; color:var(--ink-3); max-width:76ch}
+figcaption b{color:var(--ink-2); font-weight:600}
+.legend{display:flex; flex-wrap:wrap; gap:6px 18px; align-items:center;
+  font-family:"Source Sans 3",sans-serif; font-size:12.5px; color:var(--ink-2)}
+.legend span{display:inline-flex; align-items:center; gap:7px}
+.sw{width:11px; height:11px; border-radius:2px; flex:none}
+
+/* ---------- stats strip ---------- */
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule)}
+.st{background:var(--card); padding:18px 16px; display:flex; flex-direction:column; gap:3px}
+.st .k{font-family:"Source Sans 3",sans-serif; font-size:11px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.st .v{font-family:"IBM Plex Mono",monospace; font-size:25px; font-weight:600;
+  font-variant-numeric:tabular-nums; line-height:1.15}
+.st .s{font-family:"Source Sans 3",sans-serif; font-size:12px; color:var(--ink-3)}
+.v.up{color:var(--good)} .v.dn{color:var(--bad)}
+
+footer{margin-top:64px; border-top:1px solid var(--rule); padding-top:22px;
+  font-family:"Source Sans 3",sans-serif; font-size:12.5px; color:var(--ink-3);
+  display:flex; flex-direction:column; gap:7px}
+
+@media (max-width:680px){
+  body{font-size:16px}
+  .doc{padding:36px 20px 72px}
+  h1{font-size:29px}
+  h2{font-size:21px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ---------- print / PDF ---------- */
+@page{ size:A4; margin:17mm 15mm 19mm; }
+@media print{
+  :root{
+    --paper:#ffffff; --card:#ffffff; --sunk:#f2f5f8; --rail:#f7f9fb;
+    --ink:#0f1419; --ink-2:#3f4b58; --ink-3:#6b7784;
+    --rule:#c9d2db; --rule-2:#e4eaf0;
+    --accent:#1f6fb2; --good:#00776a; --bad:#a8501a; --alt:#7a4596;
+    --good-wash:rgba(0,147,127,.12); --bad-wash:rgba(194,98,31,.12);
+    --hl:rgba(31,111,178,.08);
+  }
+  body{ background:#fff; font-size:10.2pt; line-height:1.5; }
+  .doc{ max-width:none; padding:0; }
+  p,ul,ol,.abstract p,.finding p{ max-width:none; }
+  h1{ font-size:24pt; max-width:none; }
+  h2{ font-size:14pt; } h3{ font-size:11pt; }
+  .subtitle{ font-size:12pt; } .abstract p{ font-size:10pt; }
+  table{ font-size:8.4pt; min-width:0; }
+  th,td{ padding:5px 8px; }
+  td.rx{ font-size:7.6pt; min-width:0; white-space:normal; }
+  th:first-child,td:first-child{ min-width:0; }
+  .tw{ overflow:visible; }
+  figcaption,caption,.legend,footer{ font-size:8.4pt; }
+  .st .v{ font-size:17pt; } .st{ padding:11px 12px; }
+  figure{ padding:14px 14px 10px; }
+  code{ padding:0 1px; background:transparent; font-size:.9em; }
+
+  /* keep units whole on a page */
+  figure,.tw,.finding,.stats,.abstract{ break-inside:avoid; page-break-inside:avoid; }
+  .h2row,h3,caption{ break-after:avoid; page-break-after:avoid; }
+  section{ margin-top:26px; }
+  h1,h2,h3{ break-after:avoid; }
+  li{ break-inside:avoid; }
+  footer{ break-before:auto; }
+
+  /* section 5 onward starts a fresh page so results are not split by the fold */
+  section:nth-of-type(5){ break-before:page; page-break-before:always; }
+}
+</style>
+
+<div class="doc">
+
+<div class="title">
+  <p class="kicker">Technical report · Smart-contract vulnerability evaluation</p>
+  <h1>Static pre-slicing for LLM contract auditing</h1>
+  <p class="subtitle">A controlled A/B experiment measuring whether a purely lexical
+  pre-filter can cut model input by half without degrading agreement with the DIVE
+  ground-truth labels.</p>
+  <div class="byline">
+    <span><b>Corpus</b> DIVE (22,330 contracts), stratified n = 50</span>
+    <span><b>Model</b> Claude Opus 5, effort = high</span>
+    <span><b>Date</b> 3 September 2026</span>
+  </div>
+</div>
+
+<div class="abstract">
+  <h2>Abstract</h2>
+  <p>Classifying Solidity source against the DASP-8 taxonomy with a large language model
+  costs tokens roughly in proportion to source length, and most of a real contract is
+  boilerplate that cannot carry a vulnerability. We built <code>slice.py</code>, a static
+  pre-filter that keeps only the lines matching lexical anchors for each DASP category,
+  collapses unmodified standard-library constructs, and groups the survivors into blocks
+  tagged with their candidate categories. The filter is validated to retain evidence for
+  <b>119 of 119</b> label-positive category instances (recall 1.00 for all eight categories)
+  while emitting <b>60.2%</b> of the original characters.</p>
+  <p>We then ran the 50-contract evaluation twice under identical conditions, varying only
+  the pre-filter. Total token consumption fell <b>56.6%</b> (913,958 → 396,438) and wall
+  clock fell <b>19.7%</b>, while label agreement was statistically indistinguishable between
+  arms (61.8% vs 62.5%; McNemar on 400 paired cells, <span class="mono">p = 0.76</span>).
+  We therefore report <b>non-inferiority at roughly half the input budget</b>, not an
+  accuracy improvement. Two secondary findings qualify the result: monetary cost fell only
+  1.4% because the saving lands on the cheapest token class, and the category tags emitted
+  by the filter measurably bias the model toward positive predictions.</p>
+</div>
+
+<div class="stats" style="margin-top:26px">
+  <div class="st"><span class="k">Tokens</span><span class="v up mono">−56.6%</span><span class="s">913,958 → 396,438</span></div>
+  <div class="st"><span class="k">Agreement</span><span class="v mono">+0.7 pp</span><span class="s">p = 0.76, n.s.</span></div>
+  <div class="st"><span class="k">Wall clock</span><span class="v up mono">−19.7%</span><span class="s">1,019.6 s → 818.5 s</span></div>
+  <div class="st"><span class="k">Cost</span><span class="v mono">−1.4%</span><span class="s">$3.4103 → $3.3636</span></div>
+</div>
+
+<!-- ============================================================ 1 -->
+<section>
+  <div class="h2row"><span class="num">1</span><h2>Motivation and research question</h2></div>
+  <div class="body">
+    <p>Our baseline protocol submits each contract's complete source to the model in a
+    single prompt and asks for eight binary labels. On the 50-contract set this consumed
+    913,958 tokens and roughly 17 minutes. Scaling this to the full DIVE corpus of 22,330
+    contracts is prohibitive on both budget and context-window grounds, and the marginal
+    value of most of the input is questionable: a fixed-supply ERC-20 token is 400 lines of
+    OpenZeppelin boilerplate wrapped around perhaps 30 lines that could plausibly hold a
+    flaw.</p>
+    <p>This suggests a pre-processing step. The research question is deliberately narrow:</p>
+    <div class="finding">
+      <span class="lbl">Research question</span>
+      <p>Can a purely static, non-model pre-filter remove a large fraction of a contract's
+      source without changing the model's classification behaviour — and if so, how much of
+      the token budget does that actually recover?</p>
+    </div>
+    <p>Two constraints followed from an early design review and shaped everything below.
+    First, the filter must be <b>fully static</b>: every rule decidable by regular
+    expressions and brace counting. A filter that itself requires model judgment to decide
+    what to keep would consume the tokens it is meant to save. Second, overlapping evidence
+    for different categories must be <b>emitted once</b>: eight independent per-category
+    passes would send more text than the unsliced baseline, not less.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 2 -->
+<section>
+  <div class="h2row"><span class="num">2</span><h2>Dataset and baseline configuration</h2></div>
+  <div class="body">
+    <p>DIVE provides contract-level binary labels for 22,330 Solidity contracts across the
+    first eight DASP Top-10 categories. Labels are <b>contract-level only</b> — the dataset
+    carries no line numbers, no function names, and no localisation of any kind. This is a
+    material constraint on the work: it means the pre-filter cannot be validated against
+    known vulnerable lines, only against the weaker criterion that a label-positive contract
+    retains <em>some</em> block tagged with that category.</p>
+
+    <div class="tw">
+      <table>
+        <caption><b>Table 1.</b> Sample composition. Contracts were drawn by
+        <code>select_stratified.py</code> with <code>seed=20260827</code>: a seeded random
+        draw, then repaired so every category has at least 5 positives and 5 negatives.
+        This keeps base rates near DIVE's natural prevalence while making all eight
+        categories measurable in both directions.</caption>
+        <thead><tr>
+          <th>DASP category</th><th>DIVE prevalence</th><th>Positives in sample</th><th>Sample rate</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Reentrancy</td><td class="n">51.1%</td><td class="n">22</td><td class="n">44%</td></tr>
+          <tr><td>Access Control</td><td class="n">74.9%</td><td class="n">39</td><td class="n">78%</td></tr>
+          <tr><td>Arithmetic</td><td class="n">42.7%</td><td class="n">23</td><td class="n">46%</td></tr>
+          <tr><td>Unchecked Return Values</td><td class="n">26.5%</td><td class="n">5</td><td class="n">10%</td></tr>
+          <tr><td>DoS</td><td class="n">16.9%</td><td class="n">7</td><td class="n">14%</td></tr>
+          <tr><td>Bad Randomness</td><td class="n">2.8%</td><td class="n">5</td><td class="n">10%</td></tr>
+          <tr><td>Front Running</td><td class="n">2.7%</td><td class="n">5</td><td class="n">10%</td></tr>
+          <tr><td>Time manipulation</td><td class="n">28.3%</td><td class="n">13</td><td class="n">26%</td></tr>
+          <tr class="tot"><td>All categories</td><td class="n">—</td><td class="n">119 / 400</td><td class="n">29.8%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The 50 contracts total 552,043 characters (min 2,358; median 11,484; max 27,687;
+    none truncated). Compiler versions split 27 legacy (<code>^0.4</code>, <code>^0.5</code>)
+    against 23 modern (<code>0.8+</code>) — a distribution that turns out to matter in
+    §3.3. The baseline arm runs the Claude Code CLI in headless mode with tools disabled,
+    so the model sees nothing but the prompt; a JSON schema forces a parseable label vector.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 3 -->
+<section>
+  <div class="h2row"><span class="num">3</span><h2>Method: the static pre-filter</h2></div>
+  <div class="body">
+
+    <h3><span class="num">3.1</span> Pipeline</h3>
+    <p>The filter runs four stages over each source file. Stage 3 is the only stage that
+    consults the DASP taxonomy; stages 1, 2 and 4 are taxonomy-independent.</p>
+
+    <figure>
+      <svg viewBox="0 0 760 268" role="img" aria-label="Two experimental arms. Arm A sends the full 552,043-character source straight to Claude Opus 5, which returns 8 DASP labels. Arm B inserts three static stages between the source and the model: strip comments leaving 76.3 percent, collapse standard library constructs leaving 56.0 percent, and anchor windows plus tags giving 60.2 percent, before the same model and the same 8 labels.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto">
+            <polygon points="0,0 10,4 0,8" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- Arm A -->
+        <text x="20" y="26" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="500" fill="currentColor">ARM A — baseline</text>
+        <g fill="none" stroke="currentColor" stroke-width="1.25">
+          <rect x="20"  y="38" width="100" height="46" rx="3"/>
+          <rect x="516" y="38" width="100" height="46" rx="3"/>
+          <rect x="640" y="38" width="100" height="46" rx="3"/>
+        </g>
+        <g stroke="currentColor" stroke-width="1.25" marker-end="url(#ar)">
+          <line x1="120" y1="61" x2="508" y2="61"/>
+          <line x1="616" y1="61" x2="632" y2="61"/>
+        </g>
+        <g font-family="Source Sans 3, sans-serif" font-size="11.5" fill="currentColor" text-anchor="middle">
+          <text x="70"  y="57">50 contracts</text><text x="70"  y="72" font-family="IBM Plex Mono, monospace" font-size="10.5">552,043 ch</text>
+          <text x="566" y="57">Claude</text><text x="566" y="72">Opus 5</text>
+          <text x="690" y="57">8 DASP</text><text x="690" y="72">labels</text>
+          <text x="314" y="53" font-size="11" fill="currentColor">full source · 100%</text>
+        </g>
+
+        <!-- divider -->
+        <line x1="20" y1="112" x2="740" y2="112" stroke="currentColor" stroke-width="1" stroke-dasharray="3 4" opacity=".35"/>
+
+        <!-- Arm B -->
+        <text x="20" y="140" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="500" fill="var(--accent)">ARM B — sliced</text>
+        <g fill="none" stroke="currentColor" stroke-width="1.25">
+          <rect x="20"  y="152" width="100" height="46" rx="3"/>
+          <rect x="516" y="152" width="100" height="46" rx="3"/>
+          <rect x="640" y="152" width="100" height="46" rx="3"/>
+        </g>
+        <g fill="none" stroke="var(--accent)" stroke-width="1.5">
+          <rect x="144" y="152" width="100" height="46" rx="3"/>
+          <rect x="268" y="152" width="100" height="46" rx="3"/>
+          <rect x="392" y="152" width="100" height="46" rx="3"/>
+        </g>
+        <g stroke="currentColor" stroke-width="1.25" marker-end="url(#ar)">
+          <line x1="120" y1="175" x2="136" y2="175"/>
+          <line x1="244" y1="175" x2="260" y2="175"/>
+          <line x1="368" y1="175" x2="384" y2="175"/>
+          <line x1="492" y1="175" x2="508" y2="175"/>
+          <line x1="616" y1="175" x2="632" y2="175"/>
+        </g>
+        <g font-family="Source Sans 3, sans-serif" font-size="11.5" fill="currentColor" text-anchor="middle">
+          <text x="70"  y="171">50 contracts</text><text x="70"  y="186" font-family="IBM Plex Mono, monospace" font-size="10.5">552,043 ch</text>
+          <text x="194" y="171">1 · strip</text><text x="194" y="186">comments</text>
+          <text x="318" y="171">2 · collapse</text><text x="318" y="186">stdlib</text>
+          <text x="442" y="171">3 · anchor</text><text x="442" y="186">windows + tags</text>
+          <text x="566" y="171">Claude</text><text x="566" y="186">Opus 5</text>
+          <text x="690" y="171">8 DASP</text><text x="690" y="186">labels</text>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--accent)" text-anchor="middle" font-weight="500">
+          <text x="194" y="218">76.3%</text>
+          <text x="318" y="218">56.0%</text>
+          <text x="442" y="218">60.2%</text>
+        </g>
+        <text x="442" y="240" font-family="Source Sans 3, sans-serif" font-size="11" fill="currentColor" text-anchor="middle" opacity=".75">characters remaining, corpus-wide</text>
+      </svg>
+      <figcaption><b>Figure 1.</b> The two arms differ only in the three highlighted stages.
+      Model, effort, system prompt, JSON schema, sample set and tool settings are identical.
+      Note that stage 3 <em>increases</em> size relative to stage 2 — the block headers it
+      adds cost more than the lines it removes (§3.6).</figcaption>
+    </figure>
+
+    <h3><span class="num">3.2</span> Anchors and the single surviving gate</h3>
+    <p>Each category owns a set of anchor regular expressions. A line matching an anchor
+    marks its enclosing region as a candidate for that category. Two shared macros do most
+    of the work: <code>EXT</code> matches any external or cross-contract call, and
+    <code>MUTFN</code> matches a state-mutating <code>public</code>/<code>external</code>
+    entry point.</p>
+
+    <div class="tw">
+      <table>
+        <caption><b>Table 2.</b> Final anchor set. Recall is measured against the DIVE
+        labels over all 50 contracts and is 1.00 for every category.</caption>
+        <thead><tr><th>Category</th><th>Anchors</th><th>Gate</th><th>Recall</th></tr></thead>
+        <tbody>
+          <tr><td>Reentrancy</td><td class="rx">EXT</td><td class="n">view/pure</td><td class="n">22/22</td></tr>
+          <tr><td>Access Control</td><td class="rx">modifier · only\w+ · owner= · tx.origin · selfdestruct · delegatecall · require(msg.sender · transferOwnership · admin · MUTFN</td><td class="n">view/pure</td><td class="n">39/39</td></tr>
+          <tr><td>Arithmetic</td><td class="rx">[+−*/%]= · ++ · −− · x[+*/%]y · ** · &lt;&lt; &gt;&gt; · unchecked</td><td class="n">—</td><td class="n">23/23</td></tr>
+          <tr><td>Unchecked Return Values</td><td class="rx">EXT</td><td class="n">view/pure</td><td class="n">5/5</td></tr>
+          <tr><td>DoS</td><td class="rx">for( · while( · .push( · .length · require( · revert · assert( · EXT</td><td class="n">view/pure</td><td class="n">7/7</td></tr>
+          <tr><td>Bad Randomness</td><td class="rx">blockhash · block.{difficulty,coinbase,gaslimit,number,timestamp,prevrandao} · now · keccak256 · sha3 · sha256 · random · nonce · seed</td><td class="n">—</td><td class="n">5/5</td></tr>
+          <tr><td>Front Running</td><td class="rx">approve( · allowance · msg.value · tx.gasprice · price · bid · swap*( · slippage · amountOutMin · deadline · reserve · MUTFN</td><td class="n">view/pure</td><td class="n">5/5</td></tr>
+          <tr><td>Time manipulation</td><td class="rx">now · block.timestamp · block.number · N days|hours|minutes|weeks · deadline · startTime · endTime · cooldown · lastClaim · timeout</td><td class="n">—</td><td class="n">13/13</td></tr>
+          <tr class="tot"><td>All</td><td class="rx">—</td><td class="n">—</td><td class="n">119/119</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Two anchors were added late, after failure analysis, and each recovered a category
+    that pure syntactic matching missed:</p>
+    <ul>
+      <li><b><code>XCALL</code> — a call on a non-builtin receiver.</b> Contract 4704's
+      reentrancy is <code>petCardData.setPetAuras(...)</code>: a call through an
+      interface-typed state variable, with no <code>.call</code>, <code>.send</code> or
+      <code>.transfer</code> anywhere in the file. Matching <code>receiver.method(</code>
+      while excluding builtins (<code>msg</code>, <code>block</code>, <code>tx</code>,
+      <code>abi</code>, <code>SafeMath</code>, …) recovers it.</li>
+      <li><b><code>MUTFN</code> — every state-mutating entry point.</b> Contract 9837 is a
+      plain fixed-supply token with no owner, no modifier and no access-control construct at
+      all. Its Access Control label describes an <em>absence</em>, which no positive pattern
+      can match. Treating every non-<code>view</code> <code>public</code> function as a
+      candidate is the only static way to surface it.</li>
+    </ul>
+
+    <h3><span class="num">3.3</span> Rules that were rejected, and why</h3>
+    <p>The first design carried five semantic gates intended to suppress obvious
+    false-positive regions. Each was ablated against the DIVE labels. Four had to be
+    removed: they encoded correct security reasoning but disagreed with the ground truth we
+    are being scored against. We record them because the negative result is the more
+    informative one.</p>
+
+    <div class="tw">
+      <table>
+        <caption><b>Table 3.</b> Gate ablation. Only the <code>view</code>/<code>pure</code>
+        gate survives. Recall is measured on the affected category.</caption>
+        <thead><tr><th>Proposed gate</th><th>Rationale</th><th>Recall effect</th><th>Kept</th></tr></thead>
+        <tbody>
+          <tr><td><code>pragma ≥ 0.8</code> suppresses Arithmetic</td><td class="rx">solc 0.8 checks arithmetic by default</td><td class="d dn">1.00 → 0.43</td><td class="n">no</td></tr>
+          <tr><td>Function writes no state ⇒ not Reentrancy</td><td class="rx">no state to leave inconsistent</td><td class="d dn">0.91 → 0.36</td><td class="n">no</td></tr>
+          <tr><td><code>require(…send())</code> ⇒ return value checked</td><td class="rx">the result is not dropped</td><td class="d dn">0.60 → 0.20</td><td class="n">no</td></tr>
+          <tr><td>Constant-bound loop ⇒ not DoS</td><td class="rx">iteration count is not attacker-controlled</td><td class="d z">no change</td><td class="n">no</td></tr>
+          <tr><td><code>view</code>/<code>pure</code> body cannot mutate</td><td class="rx">no state change is possible</td><td class="d z">no loss</td><td class="n">yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="finding warn">
+      <span class="lbl">Finding — a property of the labels, not the filter</span>
+      <p>23 of the 50 contracts compile under solc 0.8+, where arithmetic reverts on
+      overflow, and DIVE labels many of them Arithmetic-positive anyway. Similarly, DIVE
+      marks contracts Reentrancy-positive whose only external call is a state-free token
+      forward. The gates were not wrong about Solidity; they were wrong about DIVE. Any
+      filter tuned to maximise agreement with this dataset inherits the dataset's
+      annotation policy, and that limits how far these anchors generalise.</p>
+    </div>
+
+    <h3><span class="num">3.4</span> Windows, merging, and single emission</h3>
+    <p>An anchored line expands to its innermost enclosing brace block, capped at 10 lines;
+    beyond that cap it falls back to the anchor ± 2 lines. The enclosing function signature
+    is always attached so visibility and modifiers stay visible. Windows are then sorted and
+    merged: any two whose ranges overlap or abut are fused into one block whose tag set is
+    the <em>union</em> of theirs. This is what satisfies the single-emission constraint from
+    §1 — a region relevant to both Reentrancy and Arithmetic is sent once, carrying both
+    tags, rather than twice.</p>
+    <p>Blocks are rendered with a header naming their source line range and candidate
+    categories:</p>
+    <div class="tw"><table><tbody><tr><td class="rx">// --- BLOCK 4 | src L37-60 | candidates: Access Control, Arithmetic, Bad Randomness, DoS, Front Running, Reentrancy, Time manipulation, Unchecked Return Values</td></tr></tbody></table></div>
+    <p>Averaged over the corpus this yields 14.9 blocks per contract.</p>
+
+    <h3><span class="num">3.5</span> Boilerplate collapse and the rescue pass</h3>
+    <p>Unmodified standard-library constructs — <code>SafeMath</code>, <code>IERC20</code>,
+    <code>Ownable</code>, <code>Context</code>, <code>IUniswap*</code> and relatives — are
+    replaced by a one-line stub. Applied naively this cost recall: Access Control fell to
+    0.95 and DoS to 0.86, because in a handful of contracts the only anchor for a category
+    sat inside a collapsed construct. A <b>rescue pass</b> repairs this: if a category ends
+    with zero blocks anywhere in the file but an anchor for it exists inside collapsed
+    text, a three-line window is emitted there. This restores recall to 1.00 at a cost of
+    roughly 2 percentage points of size.</p>
+
+    <h3><span class="num">3.6</span> Where the reduction actually comes from</h3>
+    <p>Decomposing the pipeline by stage produces the report's most consequential
+    methodological finding, and it is not the one we expected.</p>
+
+    <figure>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--accent)"></span>source characters retained</span>
+        <span><span class="sw" style="background:var(--bad)"></span>block headers added by stage 3</span>
+      </div>
+      <svg viewBox="0 0 780 216" role="img" aria-label="Corpus size after each pipeline stage as a percentage of the raw 552,043 characters. Raw 100 percent. After stripping comments and blank lines, 76.3 percent, a fall of 23.7 points. After collapsing standard library constructs, 56.0 percent, a fall of 20.3 points. Final emitted output 60.2 percent, a rise of 4.2 points caused by block headers.">
+        <g font-family="Source Sans 3, sans-serif" font-size="12.5" fill="currentColor" text-anchor="end">
+          <text x="196" y="38">raw source</text>
+          <text x="196" y="80">1 · comments stripped</text>
+          <text x="196" y="122">2 · stdlib collapsed</text>
+          <text x="196" y="164">3 · windows + headers</text>
+        </g>
+        <!-- scale: 480px = 100%  -> 4.8px per pp, origin x=210 -->
+        <g>
+          <rect x="210" y="22" width="480"   height="22" rx="3" fill="var(--accent)" opacity=".55"/>
+          <rect x="210" y="64" width="366.2" height="22" rx="3" fill="var(--accent)" opacity=".75"/>
+          <rect x="210" y="106" width="268.8" height="22" rx="3" fill="var(--accent)"/>
+          <rect x="210" y="148" width="268.8" height="22" fill="var(--accent)"/>
+          <rect x="480.8" y="148" width="20.2" height="22" rx="3" fill="var(--bad)"/>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor" font-weight="500">
+          <text x="770" y="38" text-anchor="end">100.0%</text>
+          <text x="586" y="80">76.3%</text>
+          <text x="489" y="122">56.0%</text>
+          <text x="511" y="164">60.2%</text>
+        </g>
+        <g font-family="Source Sans 3, sans-serif" font-size="11" fill="currentColor" opacity=".7">
+          <text x="640" y="80">−23.7 pp</text>
+          <text x="543" y="122">−20.3 pp</text>
+          <text x="565" y="164" fill="var(--bad)" opacity="1">+4.2 pp</text>
+        </g>
+        <line x1="210" y1="184" x2="690" y2="184" stroke="currentColor" stroke-width="1" opacity=".3"/>
+        <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor" opacity=".7">
+          <text x="210" y="200">0</text>
+          <text x="690" y="200" text-anchor="end">552,043 characters</text>
+        </g>
+      </svg>
+      <figcaption><b>Figure 2.</b> Corpus size after each stage. Comment stripping and
+      stdlib collapse account for the entire reduction. Stage 3 — the DASP-specific
+      anchoring that the whole design is built around — discards only 22.3% of the
+      post-collapse source and adds 16.9% back as block headers, for a net contribution
+      near zero.</figcaption>
+    </figure>
+
+    <div class="finding warn">
+      <span class="lbl">Finding — the anchors do not save tokens</span>
+      <p>Two of the three stages are taxonomy-independent and do all the size work. The
+      anchor machinery — eight regex sets, brace-matched windows, merging, the rescue pass —
+      contributes essentially no net reduction once its own block headers are paid for. Its
+      output is therefore best understood not as compression but as <b>annotation</b>: it
+      tells the model where to look. Whether that annotation helps is an empirical question,
+      and §6 argues it currently hurts.</p>
+    </div>
+
+    <h3><span class="num">3.7</span> Two implementation defects found during validation</h3>
+    <p>Both were silent — they produced plausible output that was wrong — and are recorded
+    as a caution for anyone reimplementing this.</p>
+    <ol>
+      <li><b>Comment stripping corrupted brace matching.</b> The block-comment pattern
+      <code>/\*.*?\*/</code> matched the <code>/*</code> embedded in the line comment
+      <code>//** is exponent, price doubles every level</code> and consumed everything up to
+      the next <code>*/</code>, deleting a closing brace. A whole <code>library SafeMath</code>
+      was consequently parsed as part of the contract above it and never collapsed. Fixed by
+      tokenising strings and both comment forms in a single pass.</li>
+      <li><b>Reported line numbers did not match the source file.</b> Block comments were
+      removed rather than replaced by their newline count, so every
+      <code>src L37-60</code> annotation after the first block comment was offset. Fixed by
+      preserving line count when stripping.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================================================ 4 -->
+<section>
+  <div class="h2row"><span class="num">4</span><h2>Experimental design</h2></div>
+  <div class="body">
+    <p>Arm A is the pre-existing baseline (<code>results_50_calibrated.json</code>). Arm B
+    adds a <code>--slice</code> flag to the same harness, which replaces each sample's
+    source with the filter's output and prepends an explanation of the block format. Every
+    other variable is held fixed: model <code>opus</code>, effort <code>high</code>, prompt
+    variant <code>calibrated</code>, tools disabled, identical JSON schema, identical
+    sample file, one call per contract.</p>
+    <p>The preamble given to Arm B explicitly instructs the model to treat tags as lexical
+    hints rather than findings, states that most tagged blocks are not vulnerable, and notes
+    that omitted code matched no anchor. This wording is itself part of the treatment; §7
+    discusses the confound it creates.</p>
+    <p>Because both arms classify the same 400 label cells, the comparison is <b>paired</b>.
+    We report McNemar's test on discordant cells as the primary inferential statistic and a
+    paired <i>t</i>-test on per-contract agreement as a secondary check.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 5 -->
+<section>
+  <div class="h2row"><span class="num">5</span><h2>Results</h2></div>
+  <div class="body">
+
+    <h3><span class="num">5.1</span> Token consumption and cost</h3>
+    <figure>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--alt)"></span>output</span>
+        <span><span class="sw" style="background:var(--bad)"></span>cache write</span>
+        <span><span class="sw" style="background:var(--accent)"></span>cache read</span>
+      </div>
+      <svg viewBox="0 0 720 176" role="img" aria-label="Token composition by class. Arm A baseline: 63,798 output, 125,385 cache write, 724,571 cache read, totalling 913,958. Arm B sliced: 53,872 output, 176,438 cache write, 166,026 cache read, totalling 396,438.">
+        <g font-family="Source Sans 3, sans-serif" font-size="12.5" fill="currentColor" text-anchor="end">
+          <text x="112" y="44">Arm A</text><text x="112" y="110">Arm B</text>
+        </g>
+        <!-- 540px = 913,958 -->
+        <g>
+          <rect x="130" y="26" width="37.7"  height="26" rx="3" fill="var(--alt)"/>
+          <rect x="169.7" y="26" width="74.1" height="26" fill="var(--bad)"/>
+          <rect x="245.8" y="26" width="424.2" height="26" rx="3" fill="var(--accent)"/>
+          <rect x="130" y="92" width="31.8"  height="26" rx="3" fill="var(--alt)"/>
+          <rect x="163.8" y="92" width="104.2" height="26" fill="var(--bad)"/>
+          <rect x="270" y="92" width="96.1"  height="26" rx="3" fill="var(--accent)"/>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor" opacity=".8">
+          <text x="130" y="70">63,798 out</text>
+          <text x="246" y="70">125,385 cache write</text>
+          <text x="412" y="70">724,571 cache read</text>
+          <text x="130" y="136">53,872 out</text>
+          <text x="212" y="136">176,438 write</text>
+          <text x="320" y="136">166,026 read</text>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="currentColor">
+          <text x="660" y="44" text-anchor="end" fill="var(--card)">913,958</text>
+          <text x="376" y="110">396,438</text>
+        </g>
+        <line x1="130" y1="156" x2="670" y2="156" stroke="currentColor" stroke-width="1" opacity=".3"/>
+        <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor" opacity=".7">
+          <text x="130" y="170">0</text><text x="670" y="170" text-anchor="end">914k tokens</text>
+        </g>
+      </svg>
+      <figcaption><b>Figure 3.</b> Token composition by class, on one shared scale. Input
+      tokens (204 and 102) are too small to render. The saving is concentrated almost
+      entirely in cache reads.</figcaption>
+    </figure>
+
+    <div class="tw">
+      <table>
+        <caption><b>Table 4.</b> Resource consumption across all 50 contracts.</caption>
+        <thead><tr><th>Measure</th><th>Arm A baseline</th><th>Arm B sliced</th><th>Δ</th></tr></thead>
+        <tbody>
+          <tr><td>Input tokens</td><td class="n">204</td><td class="n">102</td><td class="d up">−50.0%</td></tr>
+          <tr><td>Output tokens</td><td class="n">63,798</td><td class="n">53,872</td><td class="d up">−15.6%</td></tr>
+          <tr><td>Cache write</td><td class="n">125,385</td><td class="n">176,438</td><td class="d dn">+40.7%</td></tr>
+          <tr><td>Cache read</td><td class="n">724,571</td><td class="n">166,026</td><td class="d up">−77.1%</td></tr>
+          <tr class="tot"><td>Total tokens</td><td class="n">913,958</td><td class="n">396,438</td><td class="d up">−56.6%</td></tr>
+          <tr><td>Mean tokens / contract</td><td class="n">18,279</td><td class="n">7,928</td><td class="d up">−56.6%</td></tr>
+          <tr><td>Wall clock</td><td class="n">1,019.6 s</td><td class="n">818.5 s</td><td class="d up">−19.7%</td></tr>
+          <tr><td>Mean s / contract</td><td class="n">20.4</td><td class="n">16.4</td><td class="d up">−19.7%</td></tr>
+          <tr class="tot"><td>Monetary cost</td><td class="n">$3.4103</td><td class="n">$3.3636</td><td class="d z">−1.4%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="finding warn">
+      <span class="lbl">Finding — a 57% token cut is worth 1.4%</span>
+      <p>Two effects cancel. Output tokens are the most expensive class and roughly half the
+      bill, and they fell only 15.6%: reasoning length is driven by having eight categories
+      to adjudicate, not by how much source there is to read. Meanwhile the cheap 724k
+      cache-read block was replaced by a 176k cache-<em>write</em> block priced roughly an
+      order of magnitude higher per token. Slicing changed <em>which</em> tokens are spent
+      far more than how many. The defensible benefits are context headroom and 19.7% wall
+      clock — not budget.</p>
+    </div>
+
+    <h3><span class="num">5.2</span> Classification accuracy</h3>
+    <div class="tw">
+      <table>
+        <caption><b>Table 5.</b> Accuracy over all 400 label cells. Hamming loss is
+        inverted — lower is better.</caption>
+        <thead><tr><th>Metric</th><th>Arm A</th><th>Arm B</th><th>Δ</th></tr></thead>
+        <tbody>
+          <tr><td>Label agreement</td><td class="n">61.8%</td><td class="n">62.5%</td><td class="d up">+0.7 pp</td></tr>
+          <tr><td>Hamming loss</td><td class="n">38.2%</td><td class="n">37.5%</td><td class="d up">−0.8 pp</td></tr>
+          <tr><td>Exact match (8/8)</td><td class="n">0 / 50</td><td class="n">2 / 50</td><td class="d up">+2</td></tr>
+          <tr><td>Precision</td><td class="n">38.5%</td><td class="n">41.4%</td><td class="d up">+2.9 pp</td></tr>
+          <tr><td>Recall</td><td class="n">47.9%</td><td class="n">63.0%</td><td class="d up">+15.1 pp</td></tr>
+          <tr><td>F1</td><td class="n">42.7%</td><td class="n">50.0%</td><td class="d up">+7.3 pp</td></tr>
+          <tr class="tot"><td>Cohen's κ</td><td class="n">0.145</td><td class="n">0.220</td><td class="d up">+0.075</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tw">
+      <table>
+        <caption><b>Table 6.</b> Confusion matrix over 400 cells. Every false negative
+        recovered is matched by roughly one new false positive.</caption>
+        <thead><tr><th>Arm</th><th>TP</th><th>FP</th><th>FN</th><th>TN</th></tr></thead>
+        <tbody>
+          <tr><td>A — baseline</td><td class="n">57</td><td class="n">91</td><td class="n">62</td><td class="n">190</td></tr>
+          <tr><td>B — sliced</td><td class="n">75</td><td class="n">106</td><td class="n">44</td><td class="n">175</td></tr>
+          <tr class="tot"><td>Δ</td><td class="d up">+18</td><td class="d dn">+15</td><td class="d up">−18</td><td class="d dn">−15</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3><span class="num">5.3</span> Significance</h3>
+    <p>Of the 400 paired cells, 227 were correct in both arms and 130 wrong in both, leaving
+    43 discordant: 20 correct only under the baseline, 23 correct only under slicing.</p>
+    <div class="tw">
+      <table>
+        <caption><b>Table 7.</b> McNemar's exact test per category and overall.
+        <i>b</i> = correct in A only, <i>c</i> = correct in B only. With eight comparisons a
+        Bonferroni threshold is α = 0.00625; no category clears it.</caption>
+        <thead><tr><th>Category</th><th>b</th><th>c</th><th>p (exact, two-sided)</th></tr></thead>
+        <tbody>
+          <tr><td>Reentrancy</td><td class="n">1</td><td class="n">3</td><td class="n">0.625</td></tr>
+          <tr><td>Access Control</td><td class="n">2</td><td class="n">9</td><td class="n">0.065</td></tr>
+          <tr><td>Arithmetic</td><td class="n">5</td><td class="n">4</td><td class="n">1.000</td></tr>
+          <tr><td>Unchecked Return Values</td><td class="n">2</td><td class="n">2</td><td class="n">1.000</td></tr>
+          <tr><td>DoS</td><td class="n">8</td><td class="n">1</td><td class="n">0.039</td></tr>
+          <tr><td>Bad Randomness</td><td class="n">1</td><td class="n">0</td><td class="n">1.000</td></tr>
+          <tr><td>Front Running</td><td class="n">0</td><td class="n">3</td><td class="n">0.250</td></tr>
+          <tr><td>Time manipulation</td><td class="n">1</td><td class="n">1</td><td class="n">1.000</td></tr>
+          <tr class="tot"><td>All 400 cells</td><td class="n">20</td><td class="n">23</td><td class="n">0.761</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The paired <i>t</i>-test on per-contract agreement agrees:
+    <span class="mono">t = 0.434</span>, df = 49, mean difference +0.06 of 8 labels, 95% CI
+    <span class="mono">[−0.21, +0.33]</span>. The interval comfortably contains zero.</p>
+    <div class="finding">
+      <span class="lbl">Primary result</span>
+      <p>There is <b>no statistically detectable accuracy difference</b> between the arms
+      (<span class="mono">p = 0.761</span>). The correct claim is non-inferiority: removing
+      40% of the source characters and 56.6% of the tokens did not measurably change how
+      well the model agrees with DIVE. The +0.7 pp agreement gain in Table 5 is noise and
+      should not be reported as an improvement.</p>
+    </div>
+
+    <h3><span class="num">5.4</span> Per-category behaviour</h3>
+    <figure>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--good)"></span>agreement improved</span>
+        <span><span class="sw" style="background:var(--bad)"></span>agreement regressed</span>
+        <span><span class="sw" style="background:var(--ink-3)"></span>unchanged</span>
+      </div>
+      <svg viewBox="0 0 720 330" role="img" aria-label="Change in per-category label agreement, Arm B minus Arm A, in percentage points. Access Control plus 14, Front Running plus 6, Reentrancy plus 4, Unchecked Return 0, Time manipulation 0, Arithmetic minus 2, Bad Randomness minus 2, DoS minus 14.">
+        <g stroke="currentColor" stroke-width="1" opacity=".18">
+          <line x1="222.5" y1="26" x2="222.5" y2="300"/>
+          <line x1="366.5" y1="26" x2="366.5" y2="300"/>
+          <line x1="510.5" y1="26" x2="510.5" y2="300"/>
+          <line x1="654.5" y1="26" x2="654.5" y2="300"/>
+        </g>
+        <line x1="438.5" y1="22" x2="438.5" y2="304" stroke="currentColor" stroke-width="1.5" opacity=".55"/>
+        <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor" text-anchor="middle" opacity=".7">
+          <text x="222.5" y="317">−12</text><text x="366.5" y="317">−4</text>
+          <text x="438.5" y="317">0</text><text x="510.5" y="317">+4</text>
+          <text x="654.5" y="317">+12</text>
+          <text x="438.5" y="14">percentage points</text>
+        </g>
+        <g font-family="Source Sans 3, sans-serif" font-size="12.5" fill="currentColor" text-anchor="end">
+          <text x="170" y="41">Access Control</text>
+          <text x="170" y="75">Front Running</text>
+          <text x="170" y="109">Reentrancy</text>
+          <text x="170" y="143">Unchecked Return</text>
+          <text x="170" y="177">Time manipulation</text>
+          <text x="170" y="211">Arithmetic</text>
+          <text x="170" y="245">Bad Randomness</text>
+          <text x="170" y="279">DoS</text>
+        </g>
+        <g>
+          <rect x="438.5" y="27"  width="252" height="19" rx="3" fill="var(--good)"/>
+          <rect x="438.5" y="61"  width="108" height="19" rx="3" fill="var(--good)"/>
+          <rect x="438.5" y="95"  width="72"  height="19" rx="3" fill="var(--good)"/>
+          <rect x="434.5" y="129" width="8"   height="19" rx="2" fill="currentColor" opacity=".3"/>
+          <rect x="434.5" y="163" width="8"   height="19" rx="2" fill="currentColor" opacity=".3"/>
+          <rect x="402.5" y="197" width="36"  height="19" rx="3" fill="var(--bad)"/>
+          <rect x="402.5" y="231" width="36"  height="19" rx="3" fill="var(--bad)"/>
+          <rect x="186.5" y="265" width="252" height="19" rx="3" fill="var(--bad)"/>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="currentColor">
+          <text x="680" y="41" text-anchor="end" fill="var(--card)">+14.0</text>
+          <text x="556" y="75">+6.0</text>
+          <text x="520" y="109">+4.0</text>
+          <text x="452" y="143" opacity=".6">0.0</text>
+          <text x="452" y="177" opacity=".6">0.0</text>
+          <text x="392" y="211" text-anchor="end">−2.0</text>
+          <text x="392" y="245" text-anchor="end">−2.0</text>
+          <text x="428" y="279" text-anchor="end" fill="var(--card)">−14.0</text>
+        </g>
+      </svg>
+      <figcaption><b>Figure 4.</b> Change in per-category label agreement. The two large
+      movements point in opposite directions and have opposite causes.</figcaption>
+    </figure>
+
+    <div class="tw">
+      <table>
+        <caption><b>Table 8.</b> Per-category detail. "LLM+" counts contracts the model
+        marked positive; "DIVE+" counts ground-truth positives.</caption>
+        <thead><tr>
+          <th>Category</th><th>DIVE+</th><th>LLM+ A</th><th>LLM+ B</th>
+          <th>Agree A</th><th>Agree B</th><th>Δ pp</th><th>FN A</th><th>FN B</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Reentrancy</td><td class="n">22</td><td class="n">23</td><td class="n">27</td><td class="n">0.820</td><td class="n">0.860</td><td class="d up">+4.0</td><td class="n">4</td><td class="n">1</td></tr>
+          <tr><td>Access Control</td><td class="n">39</td><td class="n">6</td><td class="n">17</td><td class="n">0.340</td><td class="n">0.480</td><td class="d up">+14.0</td><td class="n">33</td><td class="n">24</td></tr>
+          <tr><td>Arithmetic</td><td class="n">23</td><td class="n">17</td><td class="n">22</td><td class="n">0.560</td><td class="n">0.540</td><td class="d dn">−2.0</td><td class="n">14</td><td class="n">12</td></tr>
+          <tr><td>Unchecked Return Values</td><td class="n">5</td><td class="n">12</td><td class="n">16</td><td class="n">0.700</td><td class="n">0.700</td><td class="d z">0.0</td><td class="n">4</td><td class="n">2</td></tr>
+          <tr><td>DoS</td><td class="n">7</td><td class="n">13</td><td class="n">20</td><td class="n">0.760</td><td class="n">0.620</td><td class="d dn">−14.0</td><td class="n">3</td><td class="n">3</td></tr>
+          <tr><td>Bad Randomness</td><td class="n">5</td><td class="n">3</td><td class="n">4</td><td class="n">0.960</td><td class="n">0.940</td><td class="d dn">−2.0</td><td class="n">2</td><td class="n">2</td></tr>
+          <tr><td>Front Running</td><td class="n">5</td><td class="n">46</td><td class="n">47</td><td class="n">0.100</td><td class="n">0.160</td><td class="d up">+6.0</td><td class="n">2</td><td class="n">0</td></tr>
+          <tr><td>Time manipulation</td><td class="n">13</td><td class="n">28</td><td class="n">28</td><td class="n">0.700</td><td class="n">0.700</td><td class="d z">0.0</td><td class="n">0</td><td class="n">0</td></tr>
+          <tr class="tot"><td>All</td><td class="n">119</td><td class="n">148</td><td class="n">181</td><td class="n">0.618</td><td class="n">0.625</td><td class="d up">+0.7</td><td class="n">62</td><td class="n">44</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3><span class="num">5.5</span> Per-contract outcomes</h3>
+    <p>14 contracts improved, 23 were unchanged, 13 regressed. The largest single regression
+    is contract <span class="mono">5665</span>, which fell 6/8 → 3/8. Its ground truth is
+    all-zero except Time manipulation, and Arm B added three false positives — Unchecked
+    Return, DoS and Bad Randomness — on precisely the three categories named in its block
+    headers.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 6 -->
+<section>
+  <div class="h2row"><span class="num">6</span><h2>Analysis</h2></div>
+  <div class="body">
+    <h3><span class="num">6.1</span> The movement is a bias shift, not a capability gain</h3>
+    <p>Arm B predicted 181 positives against Arm A's 148, where the ground truth has 119.
+    Recall rose 15.1 points and precision 2.9, but Table 6 shows what paid for it: 18
+    recovered false negatives against 15 new false positives. Cohen's κ improved from 0.145
+    to 0.220 largely because Arm A was badly under-predicting — a base-rate correction, not
+    better reasoning. Both arms remain in the "slight agreement" band; neither is a usable
+    auditor at these numbers.</p>
+
+    <h3><span class="num">6.2</span> Access Control: the anchor worked as designed</h3>
+    <p>Access Control is the most prevalent label in the sample (39/50) and the baseline's
+    worst failure, catching only 6. The <code>MUTFN</code> anchor tags every state-mutating
+    entry point — exactly the sites where a missing modifier would live — and Arm B found
+    11 more, cutting false negatives 33 → 24 for 2 new false positives. This is the one
+    category where the annotation carried real information, and it is the strongest single
+    argument for keeping tags in some form. Even so, the per-category test does not clear
+    Bonferroni correction (<span class="mono">p = 0.065</span>).</p>
+
+    <h3><span class="num">6.3</span> DoS: an anchor that tags everything informs nothing</h3>
+    <p>The DoS anchor includes <code>require(</code>, <code>revert</code> and
+    <code>assert(</code>, which appear in nearly every non-trivial function, so almost every
+    emitted block carries a DoS tag. The model read that ubiquity as evidence: positives
+    went 13 → 20 against a ground truth of 7, while false negatives stayed at 3. The tag
+    recovered nothing and cost 14 points of agreement — the largest per-category movement in
+    the experiment (<span class="mono">b = 8, c = 1</span>).</p>
+    <p>Taken with contract 5665, this is a consistent mechanism: <b>the model treats the
+    tags as weak evidence despite an explicit instruction not to.</b> A tag that fires on
+    90% of blocks carries no information but still shifts the prior.</p>
+
+    <h3><span class="num">6.4</span> What the token result does and does not license</h3>
+    <p>The load-bearing result is negative and robust: discarding 40% of the characters
+    changed nothing measurable, so the model was not using the discarded text. That holds
+    independently of the tagging question and independently of the cost analysis. It
+    licenses aggressive pre-filtering as a scaling strategy for the full 22,330-contract
+    corpus, where the binding constraint is context and throughput rather than dollars.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 7 -->
+<section>
+  <div class="h2row"><span class="num">7</span><h2>Threats to validity</h2></div>
+  <div class="body">
+    <ul>
+      <li><b>The treatment confounds two changes.</b> Arm B both removes code and adds
+      category tags plus an explanatory preamble. §6.3 gives good reason to think these have
+      opposite-signed effects, so the null result may be a cancellation rather than a true
+      absence of effect. Disentangling them requires the third arm proposed in §8.</li>
+      <li><b>Single run, n = 50.</b> No repeated sampling and no variance estimate across
+      runs. With a non-deterministic model, some of the 43 discordant cells are almost
+      certainly run-to-run noise rather than treatment effect.</li>
+      <li><b>Filter recall is validated against a weak criterion.</b> DIVE has no line-level
+      annotation, so "recall 1.00" means only that a label-positive contract retains
+      <em>some</em> block tagged with that category — not that it retains the specific lines
+      the annotator was looking at. The filter could in principle keep the wrong evidence
+      and still score 1.00.</li>
+      <li><b>The anchors are tuned on the evaluation set.</b> Anchors and gates were
+      developed by iterating against these same 50 contracts. The 1.00 recall figure is
+      therefore an in-sample fit and will be optimistic on held-out data; §3.3 shows the
+      tuning absorbed DIVE-specific annotation policy.</li>
+      <li><b>Absolute agreement is low in both arms.</b> At κ ≈ 0.15–0.22 the model is
+      barely above chance on this taxonomy. Comparisons between two weak classifiers are
+      correspondingly fragile, and improvements in F1 should not be over-read.</li>
+      <li><b>Cost figures are platform-specific.</b> The 1.4% result depends on the
+      cache-write/cache-read price ratio and on this harness's caching behaviour; a
+      different serving configuration could turn the same token reduction into a
+      substantially larger or smaller saving.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ 8 -->
+<section>
+  <div class="h2row"><span class="num">8</span><h2>Conclusions and next experiments</h2></div>
+  <div class="body">
+    <p>A purely static pre-filter removed 40% of source characters and 56.6% of tokens from
+    a DASP-8 classification task with no statistically detectable change in agreement
+    (<span class="mono">p = 0.761</span>). Monetary saving was negligible (1.4%) because the
+    reduction lands on the cheapest token class; wall clock fell 19.7%. The category tags
+    the filter emits appear to bias the model toward positive predictions, helping where an
+    anchor is selective (Access Control, +14 pp) and hurting where it is not (DoS, −14 pp).</p>
+    <p>Three experiments follow directly, in priority order.</p>
+    <ol>
+      <li><b>Run a tag-free third arm.</b> Same sliced source, block headers reduced to line
+      ranges with no category names. This separates the two confounded treatments and, given
+      §6.3, is the most likely configuration to beat both current arms. It also removes the
+      16.9% header overhead identified in §3.6, pushing output below 52% of source.</li>
+      <li><b>Suppress tags above a coverage threshold.</b> If a category tags more than
+      roughly 60% of a contract's blocks it is not discriminating and should be omitted for
+      that contract. This is a two-line change and directly targets the DoS failure while
+      preserving the Access Control gain.</li>
+      <li><b>Re-tune the DoS anchor and re-validate.</b> Drop <code>require(</code>,
+      <code>revert</code> and <code>assert(</code>, keeping loops and external calls, then
+      re-check recall. If DoS recall survives at 7/7, most of the 14-point loss should
+      recover without touching anything else.</li>
+    </ol>
+    <p>Beyond these, the filter should be re-validated on a held-out DIVE split to obtain an
+    out-of-sample recall estimate before any claim about the full corpus, and the sliced
+    protocol should be repeated across several runs to establish run-to-run variance.</p>
+  </div>
+</section>
+
+<footer>
+  <p><b>Reproduction.</b>
+  <span class="mono">python3 select_stratified.py -n 50 --seed 20260827</span> ·
+  <span class="mono">python3 slice.py --self-check</span> ·
+  <span class="mono">python3 run_eval.py --samples samples_50.json --out results_50_sliced.json --model opus --effort high --prompt calibrated --slice</span> ·
+  <span class="mono">python3 compare_ab.py results_50_calibrated.json results_50_sliced.json</span></p>
+  <p><b>Artifacts.</b> <span class="mono">slice.py</span> (pre-filter),
+  <span class="mono">compare_ab.py</span> (A/B statistics),
+  <span class="mono">results_50_calibrated.json</span> (Arm A),
+  <span class="mono">results_50_sliced.json</span> (Arm B),
+  <span class="mono">sliced_50.json</span> (filter output for all 50 contracts).</p>
+  <p>All figures computed directly from the two result files. Statistical tests: McNemar
+  exact binomial on paired label cells; paired <i>t</i>-test on per-contract agreement.</p>
+</footer>
+
+</div>

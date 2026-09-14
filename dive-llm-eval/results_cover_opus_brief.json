@@ -1,0 +1,397 @@
+{
+  "summary": {
+    "model": "opus",
+    "effort": "high",
+    "contracts_evaluated": 5,
+    "contracts_failed": 0,
+    "exact_match_all_8": 0,
+    "label_agreement": 0.675,
+    "hamming_loss": 0.325,
+    "per_category": {
+      "Reentrancy": {
+        "tp": 0,
+        "tn": 2,
+        "fp": 1,
+        "fn": 2,
+        "dive_positives": 2,
+        "llm_positives": 1,
+        "agreement": 0.4,
+        "precision_vs_dive": 0.0,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": -0.3636
+      },
+      "Access Control": {
+        "tp": 0,
+        "tn": 3,
+        "fp": 0,
+        "fn": 2,
+        "dive_positives": 2,
+        "llm_positives": 0,
+        "agreement": 0.6,
+        "precision_vs_dive": null,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": 0.0
+      },
+      "Arithmetic": {
+        "tp": 0,
+        "tn": 3,
+        "fp": 0,
+        "fn": 2,
+        "dive_positives": 2,
+        "llm_positives": 0,
+        "agreement": 0.6,
+        "precision_vs_dive": null,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": 0.0
+      },
+      "Unchecked Return Values": {
+        "tp": 2,
+        "tn": 3,
+        "fp": 0,
+        "fn": 0,
+        "dive_positives": 2,
+        "llm_positives": 2,
+        "agreement": 1.0,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 1.0,
+        "f1_vs_dive": 1.0,
+        "cohens_kappa": 1.0
+      },
+      "DoS": {
+        "tp": 0,
+        "tn": 3,
+        "fp": 0,
+        "fn": 2,
+        "dive_positives": 2,
+        "llm_positives": 0,
+        "agreement": 0.6,
+        "precision_vs_dive": null,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": 0.0
+      },
+      "Bad Randomness": {
+        "tp": 1,
+        "tn": 3,
+        "fp": 0,
+        "fn": 1,
+        "dive_positives": 2,
+        "llm_positives": 1,
+        "agreement": 0.8,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 0.5,
+        "f1_vs_dive": 0.6667,
+        "cohens_kappa": 0.5455
+      },
+      "Front Running": {
+        "tp": 2,
+        "tn": 3,
+        "fp": 0,
+        "fn": 0,
+        "dive_positives": 2,
+        "llm_positives": 2,
+        "agreement": 1.0,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 1.0,
+        "f1_vs_dive": 1.0,
+        "cohens_kappa": 1.0
+      },
+      "Time manipulation": {
+        "tp": 1,
+        "tn": 1,
+        "fp": 2,
+        "fn": 1,
+        "dive_positives": 2,
+        "llm_positives": 3,
+        "agreement": 0.4,
+        "precision_vs_dive": 0.3333,
+        "recall_vs_dive": 0.5,
+        "f1_vs_dive": 0.4,
+        "cohens_kappa": -0.1538
+      }
+    },
+    "timing": {
+      "run_wall_seconds": 92.24,
+      "sum_per_call_wall_seconds": 92.24,
+      "sum_cli_duration_ms": 87770,
+      "sum_api_duration_ms": 91441,
+      "mean_wall_seconds_per_contract": 18.45
+    },
+    "tokens": {
+      "input_tokens": 20,
+      "output_tokens": 5576,
+      "cache_creation_input_tokens": 12867,
+      "cache_read_input_tokens": 23906,
+      "total_tokens": 42369
+    },
+    "cost_usd": 0.2886
+  },
+  "records": [
+    {
+      "contractID": "5282",
+      "source_chars": 1152,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.6,
+        "Access Control": 0.2,
+        "Arithmetic": 0.3,
+        "Unchecked Return Values": 0.8,
+        "DoS": 0.05,
+        "Bad Randomness": 0.02,
+        "Front Running": 0.1,
+        "Time manipulation": 0.85
+      },
+      "reasons": {
+        "Reentrancy": "GetEther performs a raw external call to msg.sender before setting ExtractDepositTime to zero.",
+        "Unchecked Return Values": "The low-level msg.sender.call.value(...) result is never checked.",
+        "Time manipulation": "Deposit lock and Kill timing rely on `now` (block.timestamp), which miners can nudge."
+      },
+      "agreement": 5,
+      "wall_seconds": 16.76,
+      "cli_duration_ms": 15546,
+      "api_duration_ms": 16303,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1043,
+        "cache_creation_input_tokens": 1754,
+        "cache_read_input_tokens": 3909,
+        "total_tokens": 6710
+      },
+      "cost_usd": 0.046606499999999995,
+      "num_turns": 2,
+      "session_id": "a1bcdb2b-d4cb-4d93-bd22-ff579df0b1a0"
+    },
+    {
+      "contractID": "10268",
+      "source_chars": 1168,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.9,
+        "Access Control": 0.6,
+        "Arithmetic": 0.95,
+        "Unchecked Return Values": 0.85,
+        "DoS": 0.95,
+        "Bad Randomness": 0.97,
+        "Front Running": 0.85,
+        "Time manipulation": 0.9
+      },
+      "reasons": {},
+      "agreement": 5,
+      "wall_seconds": 14.67,
+      "cli_duration_ms": 13853,
+      "api_duration_ms": 14351,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 808,
+        "cache_creation_input_tokens": 1344,
+        "cache_read_input_tokens": 3872,
+        "total_tokens": 6028
+      },
+      "cost_usd": 0.036558,
+      "num_turns": 2,
+      "session_id": "8e413b59-c7aa-421a-ab93-29762c1ab423"
+    },
+    {
+      "contractID": "7699",
+      "source_chars": 4405,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 0,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 1,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.85,
+        "Access Control": 0.8,
+        "Arithmetic": 0.5,
+        "Unchecked Return Values": 0.85,
+        "DoS": 0.9,
+        "Bad Randomness": 0.98,
+        "Front Running": 0.75,
+        "Time manipulation": 0.85
+      },
+      "reasons": {
+        "Bad Randomness": "The lucky_number is derived from block.number and blockhash(block.number), which are miner/validator-influenceable and predictable.",
+        "Front Running": "Both the deterministic 999th-ticket jackpot and the block-derived lucky number let observers time/order their purchase to grab winnings.",
+        "Time manipulation": "Winning logic depends on block.number, which a miner can nudge to affect the outcome."
+      },
+      "agreement": 5,
+      "wall_seconds": 19.35,
+      "cli_duration_ms": 18533,
+      "api_duration_ms": 19484,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1212,
+        "cache_creation_input_tokens": 2943,
+        "cache_read_input_tokens": 5067,
+        "total_tokens": 9226
+      },
+      "cost_usd": 0.0642325,
+      "num_turns": 2,
+      "session_id": "27d651d8-a70d-4cc6-a25c-726541c9ac8c"
+    },
+    {
+      "contractID": "11894",
+      "source_chars": 8915,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.7,
+        "Access Control": 0.7,
+        "Arithmetic": 0.75,
+        "Unchecked Return Values": 0.7,
+        "DoS": 0.55,
+        "Bad Randomness": 0.95,
+        "Front Running": 0.6,
+        "Time manipulation": 0.7
+      },
+      "reasons": {
+        "Front Running": "The approve function overwrites allowance directly, enabling the classic ERC20 approve/transferFrom front-running race."
+      },
+      "agreement": 6,
+      "wall_seconds": 23.34,
+      "cli_duration_ms": 22525,
+      "api_duration_ms": 23319,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1411,
+        "cache_creation_input_tokens": 4692,
+        "cache_read_input_tokens": 6718,
+        "total_tokens": 12825
+      },
+      "cost_usd": 0.088821,
+      "num_turns": 2,
+      "session_id": "600efafc-49d3-4a08-b914-a12ba3cc0f0d"
+    },
+    {
+      "contractID": "11369",
+      "source_chars": 2427,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.85,
+        "Access Control": 0.8,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.55,
+        "DoS": 0.9,
+        "Bad Randomness": 0.95,
+        "Front Running": 0.9,
+        "Time manipulation": 0.4
+      },
+      "reasons": {
+        "Unchecked Return Values": "takeToken uses a low-level tokenAddress.call(...) whose success is merely returned rather than verified/required, so a failed transfer is not enforced.",
+        "Time manipulation": "The unlocked modifier gates token withdrawal on block.number, a chain-height dependency, though a miner can only marginally nudge it for a fixed-height lock."
+      },
+      "agreement": 6,
+      "wall_seconds": 18.12,
+      "cli_duration_ms": 17313,
+      "api_duration_ms": 17984,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1102,
+        "cache_creation_input_tokens": 2134,
+        "cache_read_input_tokens": 4340,
+        "total_tokens": 7580
+      },
+      "cost_usd": 0.05239599999999999,
+      "num_turns": 2,
+      "session_id": "30e78d5d-02c2-4821-a407-2a3706d3e840"
+    }
+  ]
+}

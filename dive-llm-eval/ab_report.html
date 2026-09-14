@@ -1,0 +1,506 @@
+<title>Static Slicing A/B</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+:root{
+  --paper:#f4f6f8; --card:#ffffff; --sunk:#eaeef2;
+  --ink:#151b23; --ink-2:#414d5c; --ink-3:#6d7a8a;
+  --rule:#d5dde5; --rule-2:#e6ecf1;
+  --blue:#1f6fb2; --orange:#c2621f; --teal:#00937f; --purple:#8a4fa8;
+  --base-arm:#7d8b9c; --slice-arm:#1f6fb2;
+  --good:#00937f; --bad:#c2621f;
+  --good-wash:rgba(0,147,127,.10); --bad-wash:rgba(194,98,31,.10);
+  --surface-gap:#f4f6f8;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#12161c; --card:#181e26; --sunk:#1f2731;
+  --ink:#e8edf2; --ink-2:#aab6c3; --ink-3:#7c8896;
+  --rule:#2b3542; --rule-2:#222b36;
+  --blue:#4d9ad9; --orange:#e08542; --teal:#26b39c; --purple:#ab74c9;
+  --base-arm:#6b7b8d; --slice-arm:#4d9ad9;
+  --good:#26b39c; --bad:#e08542;
+  --good-wash:rgba(38,179,156,.13); --bad-wash:rgba(224,133,66,.13);
+  --surface-gap:#12161c;
+}}
+:root[data-theme="dark"]{
+  --paper:#12161c; --card:#181e26; --sunk:#1f2731;
+  --ink:#e8edf2; --ink-2:#aab6c3; --ink-3:#7c8896;
+  --rule:#2b3542; --rule-2:#222b36;
+  --blue:#4d9ad9; --orange:#e08542; --teal:#26b39c; --purple:#ab74c9;
+  --base-arm:#6b7b8d; --slice-arm:#4d9ad9;
+  --good:#26b39c; --bad:#e08542;
+  --good-wash:rgba(38,179,156,.13); --bad-wash:rgba(224,133,66,.13);
+  --surface-gap:#12161c;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px; margin:0 auto; padding:48px 28px 96px; display:flex; flex-direction:column; gap:44px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums}
+h1,h2,h3{margin:0; text-wrap:balance}
+h1{font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; font-size:40px; line-height:1.12; letter-spacing:-.015em}
+h2{font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; font-size:23px; letter-spacing:-.01em}
+h3{font-size:14px; font-weight:600; letter-spacing:.02em}
+p{margin:0}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+}
+.lede{color:var(--ink-2); font-size:16.5px; max-width:64ch}
+.note{color:var(--ink-3); font-size:13.5px; max-width:72ch}
+
+/* ---- header ---- */
+header{display:flex; flex-direction:column; gap:14px; padding-bottom:36px; border-bottom:2px solid var(--ink)}
+.meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
+.chip{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-2);
+  background:var(--sunk); border-radius:3px; padding:4px 9px; white-space:nowrap;
+}
+
+/* ---- verdict strip ---- */
+.verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule)}
+.v{background:var(--card); padding:22px 20px; display:flex; flex-direction:column; gap:5px}
+.v .k{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.v .n{font-family:"IBM Plex Mono",monospace; font-size:33px; font-weight:600; line-height:1.05; font-variant-numeric:tabular-nums}
+.v .s{font-size:13px; color:var(--ink-2)}
+.n.up{color:var(--good)} .n.dn{color:var(--bad)} .n.flat{color:var(--ink)}
+
+section{display:flex; flex-direction:column; gap:18px}
+.sec-head{display:flex; flex-direction:column; gap:7px}
+
+/* ---- tables ---- */
+.tbl-scroll{overflow-x:auto; border:1px solid var(--rule); background:var(--card)}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:560px}
+th,td{padding:9px 13px; text-align:right; border-bottom:1px solid var(--rule-2); white-space:nowrap}
+th:first-child,td:first-child{text-align:left; white-space:normal}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3);
+  border-bottom:1px solid var(--rule); background:var(--sunk);
+}
+tbody tr:last-child td{border-bottom:none}
+td.num{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+td.d{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-weight:500}
+td.d.up{color:var(--good); background:var(--good-wash)}
+td.d.dn{color:var(--bad); background:var(--bad-wash)}
+td.d.z{color:var(--ink-3)}
+tr.total td{font-weight:600; border-top:1px solid var(--rule); background:var(--sunk)}
+caption{caption-side:bottom; text-align:left; padding:10px 13px; font-size:12.5px; color:var(--ink-3); border-top:1px solid var(--rule-2)}
+
+/* ---- legend ---- */
+.legend{display:flex; flex-wrap:wrap; gap:16px; align-items:center; font-size:12.5px; color:var(--ink-2)}
+.legend span{display:inline-flex; align-items:center; gap:7px}
+.sw{width:11px; height:11px; border-radius:2px; flex:none}
+
+figure{margin:0; background:var(--card); border:1px solid var(--rule); padding:20px 18px 16px; display:flex; flex-direction:column; gap:14px}
+figure svg{display:block; width:100%; height:auto}
+figcaption{font-size:12.5px; color:var(--ink-3)}
+
+/* ---- callouts ---- */
+.call{background:var(--card); border:1px solid var(--rule); border-left:3px solid var(--orange); padding:18px 20px; display:flex; flex-direction:column; gap:8px}
+.call.pos{border-left-color:var(--teal)}
+.call h3{color:var(--ink)}
+.call p{font-size:14px; color:var(--ink-2)}
+
+.cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:18px}
+
+ul{margin:0; padding-left:19px; display:flex; flex-direction:column; gap:9px; color:var(--ink-2); font-size:14.5px}
+li::marker{color:var(--ink-3)}
+code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--sunk); padding:1px 5px; border-radius:3px; color:var(--ink)}
+
+footer{border-top:1px solid var(--rule); padding-top:20px; color:var(--ink-3); font-size:12.5px; display:flex; flex-direction:column; gap:5px}
+@media (max-width:640px){
+  h1{font-size:31px}
+  .verdict{grid-template-columns:1fr}
+  .wrap{padding:32px 18px 64px; gap:34px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .v .n{transition:none}
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">DIVE · DASP-8 · Claude Opus 5</p>
+  <h1>Static pre-slicing cuts tokens by 57% and does not cost accuracy</h1>
+  <p class="lede">An A/B of the 50-contract DIVE evaluation, run twice under identical
+  conditions. The only variable is a static regex pre-filter that removes lines matching no
+  vulnerability anchor before the source reaches the model.</p>
+  <div class="meta">
+    <span class="chip">50 contracts</span>
+    <span class="chip">opus · effort=high</span>
+    <span class="chip">prompt=calibrated</span>
+    <span class="chip">tools disabled</span>
+    <span class="chip">400 label cells</span>
+    <span class="chip">2026-09-03</span>
+  </div>
+</header>
+
+<div class="verdict">
+  <div class="v">
+    <span class="k">Total tokens</span>
+    <span class="n up mono">−56.6%</span>
+    <span class="s">913,958 → 396,438</span>
+  </div>
+  <div class="v">
+    <span class="k">Label agreement</span>
+    <span class="n up mono">+0.7 pp</span>
+    <span class="s">61.8% → 62.5%</span>
+  </div>
+  <div class="v">
+    <span class="k">Cost</span>
+    <span class="n flat mono">−1.4%</span>
+    <span class="s">$3.4103 → $3.3636</span>
+  </div>
+</div>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">The pre-filter</p>
+    <h2>What the two arms actually saw</h2>
+  </div>
+  <p class="note">Both arms use the same <code>samples_50.json</code>, the same system prompt,
+  the same model and effort. Arm B replaces each contract's source with the output of
+  <code>slice.py</code>: comments stripped, standard library constructs (SafeMath, IERC20,
+  Ownable, IUniswap*) collapsed to a stub, and the remainder grouped into numbered blocks
+  tagged with the DASP categories whose lexical anchors fired inside them. The model is told
+  the tags are lexical hints, not findings.</p>
+
+  <div class="tbl-scroll">
+    <table>
+      <caption>Slicer validated against the DIVE labels before the run: every label-positive
+      contract retains at least one block tagged with that category.</caption>
+      <thead><tr>
+        <th>Pre-filter property</th><th>Value</th><th>Meaning</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>Anchor recall</td><td class="num">119 / 119</td><td>all 8 categories at 1.00 — no label-positive contract loses its evidence</td></tr>
+        <tr><td>Corpus size</td><td class="num">60.2%</td><td>552,043 → 332,134 source characters</td></tr>
+        <tr><td>Mean per-contract cut</td><td class="num">34.0%</td><td>median 27.9%, range −3.7% … 91.9%</td></tr>
+        <tr><td>Candidate blocks</td><td class="num">14.9</td><td>per contract, tagged and merged</td></tr>
+        <tr><td>Fallbacks</td><td class="num">11 / 50</td><td>small contracts shipped whole — headers would have cost more than slicing saved</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Accuracy</p>
+    <h2>Same agreement, materially better agreement structure</h2>
+    <p class="note">Raw agreement barely moves — but that single number hides the change.
+    Recall rises 15 points, κ rises 52% relative, and the first exact 8/8 matches appear.</p>
+  </div>
+
+  <div class="tbl-scroll">
+    <table>
+      <caption>Computed over all 400 label cells. Hamming loss is inverted — lower is better.</caption>
+      <thead><tr>
+        <th>Metric</th><th>Baseline</th><th>Sliced</th><th>Δ</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>Label agreement</td><td class="num">61.8%</td><td class="num">62.5%</td><td class="d up">+0.7 pp</td></tr>
+        <tr><td>Hamming loss</td><td class="num">38.2%</td><td class="num">37.5%</td><td class="d up">−0.8 pp</td></tr>
+        <tr><td>Exact match (8/8)</td><td class="num">0 / 50</td><td class="num">2 / 50</td><td class="d up">+2</td></tr>
+        <tr><td>Precision</td><td class="num">38.5%</td><td class="num">41.4%</td><td class="d up">+2.9 pp</td></tr>
+        <tr><td>Recall</td><td class="num">47.9%</td><td class="num">63.0%</td><td class="d up">+15.1 pp</td></tr>
+        <tr><td>F1</td><td class="num">42.7%</td><td class="num">50.0%</td><td class="d up">+7.3 pp</td></tr>
+        <tr class="total"><td>Cohen's κ</td><td class="num">0.145</td><td class="num">0.220</td><td class="d up">+0.075</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tbl-scroll">
+    <table>
+      <caption>The model became more willing to answer "yes": every recovered false negative
+      is matched by roughly one new false positive.</caption>
+      <thead><tr>
+        <th>Confusion</th><th>TP</th><th>FP</th><th>FN</th><th>TN</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>Baseline</td><td class="num">57</td><td class="num">91</td><td class="num">62</td><td class="num">190</td></tr>
+        <tr><td>Sliced</td><td class="num">75</td><td class="num">106</td><td class="num">44</td><td class="num">175</td></tr>
+        <tr class="total"><td>Δ</td><td class="d up">+18</td><td class="d dn">+15</td><td class="d up">−18</td><td class="d dn">−15</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Per category</p>
+    <h2>Access Control gained 14 points; DoS lost 14</h2>
+  </div>
+
+  <figure>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--teal)"></span>agreement improved</span>
+      <span><span class="sw" style="background:var(--bad)"></span>agreement regressed</span>
+      <span><span class="sw" style="background:var(--ink-3)"></span>unchanged</span>
+    </div>
+    <svg viewBox="0 0 720 330" role="img" aria-label="Change in per-category label agreement, sliced minus baseline, in percentage points. Access Control +14, Front Running +6, Reentrancy +4, Unchecked Return 0, Time manipulation 0, Arithmetic -2, Bad Randomness -2, DoS -14.">
+      <!-- gridlines -->
+      <g stroke="var(--rule-2)" stroke-width="1">
+        <line x1="222.5" y1="26" x2="222.5" y2="300"/>
+        <line x1="366.5" y1="26" x2="366.5" y2="300"/>
+        <line x1="510.5" y1="26" x2="510.5" y2="300"/>
+        <line x1="654.5" y1="26" x2="654.5" y2="300"/>
+      </g>
+      <!-- zero axis -->
+      <line x1="438.5" y1="22" x2="438.5" y2="304" stroke="var(--ink-3)" stroke-width="1.5"/>
+      <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-3)" text-anchor="middle">
+        <text x="222.5" y="317">−12</text>
+        <text x="366.5" y="317">−4</text>
+        <text x="438.5" y="317">0</text>
+        <text x="510.5" y="317">+4</text>
+        <text x="654.5" y="317">+12</text>
+        <text x="438.5" y="14" fill="var(--ink-3)" font-size="10">percentage points</text>
+      </g>
+
+      <g font-family="IBM Plex Sans, sans-serif" font-size="12.5" fill="var(--ink-2)" text-anchor="end">
+        <text x="170" y="41">Access Control</text>
+        <text x="170" y="75">Front Running</text>
+        <text x="170" y="109">Reentrancy</text>
+        <text x="170" y="143">Unchecked Return</text>
+        <text x="170" y="177">Time manipulation</text>
+        <text x="170" y="211">Arithmetic</text>
+        <text x="170" y="245">Bad Randomness</text>
+        <text x="170" y="279">DoS</text>
+      </g>
+
+      <!-- bars: 18px/pp, zero at 438.5 -->
+      <g>
+        <rect x="438.5" y="27" width="252" height="19" rx="3" fill="var(--teal)"/>
+        <rect x="438.5" y="61" width="108" height="19" rx="3" fill="var(--teal)"/>
+        <rect x="438.5" y="95" width="72" height="19" rx="3" fill="var(--teal)"/>
+        <rect x="434.5" y="129" width="8" height="19" rx="2" fill="var(--ink-3)" opacity=".35"/>
+        <rect x="434.5" y="163" width="8" height="19" rx="2" fill="var(--ink-3)" opacity=".35"/>
+        <rect x="402.5" y="197" width="36" height="19" rx="3" fill="var(--bad)"/>
+        <rect x="402.5" y="231" width="36" height="19" rx="3" fill="var(--bad)"/>
+        <rect x="186.5" y="265" width="252" height="19" rx="3" fill="var(--bad)"/>
+      </g>
+
+      <g font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="500" fill="var(--ink)">
+        <text x="680" y="41" text-anchor="end" fill="var(--card)">+14.0</text>
+        <text x="556" y="75">+6.0</text>
+        <text x="520" y="109">+4.0</text>
+        <text x="452" y="143" fill="var(--ink-3)">0.0</text>
+        <text x="452" y="177" fill="var(--ink-3)">0.0</text>
+        <text x="392" y="211" text-anchor="end">−2.0</text>
+        <text x="392" y="245" text-anchor="end">−2.0</text>
+        <text x="428" y="279" text-anchor="end" fill="var(--card)">−14.0</text>
+      </g>
+    </svg>
+    <figcaption>Change in label agreement per DASP category, sliced minus baseline, over 50 contracts.</figcaption>
+  </figure>
+
+  <div class="tbl-scroll">
+    <table>
+      <caption>"LLM+" is how many contracts the model marked positive for that category;
+      "DIVE+" is how many the ground truth marks positive.</caption>
+      <thead><tr>
+        <th>Category</th><th>DIVE+</th><th>LLM+ base</th><th>LLM+ sliced</th>
+        <th>Agree base</th><th>Agree sliced</th><th>Δ</th><th>FN base</th><th>FN sliced</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>Reentrancy</td><td class="num">22</td><td class="num">23</td><td class="num">27</td><td class="num">0.820</td><td class="num">0.860</td><td class="d up">+4.0</td><td class="num">4</td><td class="num">1</td></tr>
+        <tr><td>Access Control</td><td class="num">39</td><td class="num">6</td><td class="num">17</td><td class="num">0.340</td><td class="num">0.480</td><td class="d up">+14.0</td><td class="num">33</td><td class="num">24</td></tr>
+        <tr><td>Arithmetic</td><td class="num">23</td><td class="num">17</td><td class="num">22</td><td class="num">0.560</td><td class="num">0.540</td><td class="d dn">−2.0</td><td class="num">14</td><td class="num">12</td></tr>
+        <tr><td>Unchecked Return Values</td><td class="num">5</td><td class="num">12</td><td class="num">16</td><td class="num">0.700</td><td class="num">0.700</td><td class="d z">0.0</td><td class="num">4</td><td class="num">2</td></tr>
+        <tr><td>DoS</td><td class="num">7</td><td class="num">13</td><td class="num">20</td><td class="num">0.760</td><td class="num">0.620</td><td class="d dn">−14.0</td><td class="num">3</td><td class="num">3</td></tr>
+        <tr><td>Bad Randomness</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">0.960</td><td class="num">0.940</td><td class="d dn">−2.0</td><td class="num">2</td><td class="num">2</td></tr>
+        <tr><td>Front Running</td><td class="num">5</td><td class="num">46</td><td class="num">47</td><td class="num">0.100</td><td class="num">0.160</td><td class="d up">+6.0</td><td class="num">2</td><td class="num">0</td></tr>
+        <tr><td>Time manipulation</td><td class="num">13</td><td class="num">28</td><td class="num">28</td><td class="num">0.700</td><td class="num">0.700</td><td class="d z">0.0</td><td class="num">0</td><td class="num">0</td></tr>
+        <tr class="total"><td>All</td><td class="num">119</td><td class="num">148</td><td class="num">181</td><td class="num">0.618</td><td class="num">0.625</td><td class="d up">+0.7</td><td class="num">62</td><td class="num">44</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cols">
+    <div class="call pos">
+      <h3>Access Control: the anchor did its job</h3>
+      <p>The baseline marked only 6 of 39 positives. The slicer's <code>MUTFN</code> anchor —
+      every <code>public</code>/<code>external</code> function that is not <code>view</code> or
+      <code>pure</code> — tags exactly the entry points where a missing modifier would live, and
+      the model found 11 more. False negatives fell 33 → 24 at a cost of 2 false positives.</p>
+    </div>
+    <div class="call">
+      <h3>DoS: the anchor was too generous</h3>
+      <p>The DoS anchor includes <code>require(</code>, <code>revert</code> and
+      <code>assert(</code>, which appear in nearly every function. Almost every block carries a
+      DoS tag, and the model read the ubiquity as evidence: positives went 13 → 20 against a
+      ground truth of 7, with false negatives unchanged at 3. The tag bought nothing and
+      cost 14 points.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Tokens and cost</p>
+    <h2>Tokens fell 57%. The bill fell 1.4%.</h2>
+    <p class="note">The saving is real but lands almost entirely on cache reads — the cheapest
+    token class there is. Cache <em>writes</em>, priced roughly 12× higher, went up.</p>
+  </div>
+
+  <figure>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--purple)"></span>output</span>
+      <span><span class="sw" style="background:var(--orange)"></span>cache write</span>
+      <span><span class="sw" style="background:var(--blue)"></span>cache read</span>
+      <span><span class="sw" style="background:var(--ink-3)"></span>input</span>
+    </div>
+    <svg viewBox="0 0 720 190" role="img" aria-label="Token composition. Baseline: 63,798 output, 125,385 cache write, 724,571 cache read, 913,958 total. Sliced: 53,872 output, 176,438 cache write, 166,026 cache read, 396,438 total.">
+      <g font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--ink-2)" text-anchor="end">
+        <text x="118" y="48">Baseline</text>
+        <text x="118" y="118">Sliced</text>
+      </g>
+      <!-- scale: 540px = 913,958 tokens -> 0.0005908 px/token -->
+      <g>
+        <!-- baseline: out 37.7 | cw 74.1 | cr 428.2  (2px gaps) -->
+        <rect x="140" y="30" width="37.7" height="26" rx="3" fill="var(--purple)"/>
+        <rect x="179.7" y="30" width="74.1" height="26" fill="var(--orange)"/>
+        <rect x="255.8" y="30" width="424.2" height="26" rx="3" fill="var(--blue)"/>
+        <!-- sliced: out 31.8 | cw 104.2 | cr 98.1 -->
+        <rect x="140" y="100" width="31.8" height="26" rx="3" fill="var(--purple)"/>
+        <rect x="173.8" y="100" width="104.2" height="26" fill="var(--orange)"/>
+        <rect x="280" y="100" width="96.1" height="26" rx="3" fill="var(--blue)"/>
+      </g>
+      <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-3)">
+        <text x="670" y="48" text-anchor="end" fill="var(--card)" font-weight="500">913,958</text>
+        <text x="386" y="118" fill="var(--ink)" font-weight="500">396,438</text>
+        <text x="140" y="76">63,798 out</text>
+        <text x="255" y="76">125,385 cache write</text>
+        <text x="420" y="76">724,571 cache read</text>
+        <text x="140" y="146">53,872 out</text>
+        <text x="222" y="146">176,438 write</text>
+        <text x="330" y="146">166,026 read</text>
+      </g>
+      <line x1="140" y1="168" x2="680" y2="168" stroke="var(--rule)" stroke-width="1"/>
+      <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-3)">
+        <text x="140" y="182">0</text>
+        <text x="680" y="182" text-anchor="end">914k tokens</text>
+      </g>
+    </svg>
+    <figcaption>Token composition by class. Both bars share one scale; input tokens (204 and 102)
+    are too small to render.</figcaption>
+  </figure>
+
+  <div class="tbl-scroll">
+    <table>
+      <caption>Wall clock and per-contract figures across all 50 contracts.</caption>
+      <thead><tr><th>Measure</th><th>Baseline</th><th>Sliced</th><th>Δ</th></tr></thead>
+      <tbody>
+        <tr><td>Input tokens</td><td class="num">204</td><td class="num">102</td><td class="d up">−50.0%</td></tr>
+        <tr><td>Output tokens</td><td class="num">63,798</td><td class="num">53,872</td><td class="d up">−15.6%</td></tr>
+        <tr><td>Cache write</td><td class="num">125,385</td><td class="num">176,438</td><td class="d dn">+40.7%</td></tr>
+        <tr><td>Cache read</td><td class="num">724,571</td><td class="num">166,026</td><td class="d up">−77.1%</td></tr>
+        <tr class="total"><td>Total tokens</td><td class="num">913,958</td><td class="num">396,438</td><td class="d up">−56.6%</td></tr>
+        <tr><td>Mean tokens / contract</td><td class="num">18,279</td><td class="num">7,928</td><td class="d up">−56.6%</td></tr>
+        <tr><td>Wall clock</td><td class="num">1,019.6 s</td><td class="num">818.5 s</td><td class="d up">−19.7%</td></tr>
+        <tr><td>Mean seconds / contract</td><td class="num">20.4</td><td class="num">16.4</td><td class="d up">−19.7%</td></tr>
+        <tr class="total"><td>Cost</td><td class="num">$3.4103</td><td class="num">$3.3636</td><td class="d up">−1.4%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="call">
+    <h3>Why a 57% token cut is worth 1.4%</h3>
+    <p>Two effects cancel. Output tokens — the most expensive class, and roughly half the bill —
+    fell only 15.6%, because reasoning length is driven by the number of categories to judge,
+    not by how much source there is to read. And the cheap 724k cache-read block was replaced
+    by a 176k cache-write block that costs about 12× more per token. Slicing changed
+    <em>which</em> tokens are spent more than how much they add up to.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Per contract</p>
+    <h2>Where the two arms disagreed</h2>
+  </div>
+  <div class="cols">
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Outcome</th><th>Contracts</th></tr></thead>
+        <tbody>
+          <tr><td>Improved</td><td class="d up">14</td></tr>
+          <tr><td>Unchanged</td><td class="num">23</td></tr>
+          <tr><td>Regressed</td><td class="d dn">13</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Largest shifts</th><th>Base</th><th>Sliced</th><th>Δ</th></tr></thead>
+        <tbody>
+          <tr><td class="num">11108</td><td class="num">6/8</td><td class="num">8/8</td><td class="d up">+2</td></tr>
+          <tr><td class="num">7469</td><td class="num">3/8</td><td class="num">5/8</td><td class="d up">+2</td></tr>
+          <tr><td class="num">6305</td><td class="num">5/8</td><td class="num">7/8</td><td class="d up">+2</td></tr>
+          <tr><td class="num">19147</td><td class="num">4/8</td><td class="num">6/8</td><td class="d up">+2</td></tr>
+          <tr><td class="num">5665</td><td class="num">6/8</td><td class="num">3/8</td><td class="d dn">−3</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="note">Contract <span class="mono">5665</span> is the clearest failure mode: its
+  ground truth is all-zero except Time manipulation, and the sliced arm added three false
+  positives — Unchecked Return, DoS and Bad Randomness — on exactly the categories whose tags
+  appeared in its block headers. The tags are being read as weak evidence despite the prompt
+  saying they are not.</p>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Reading</p>
+    <h2>What this run does and does not establish</h2>
+  </div>
+  <ul>
+    <li><strong>Slicing is safe.</strong> Removing 40% of the source did not degrade
+    agreement — the model was not using the discarded lines. That is the load-bearing result,
+    and it holds independently of everything else here.</li>
+    <li><strong>The accuracy movement is a bias shift, not a capability gain.</strong> Predicted
+    positives rose 148 → 181 against a ground truth of 119. Recall bought 18 true positives and
+    paid 15 false ones. κ improved because the baseline was badly under-predicting, not because
+    the model reasons better on sliced code.</li>
+    <li><strong>The tags are not neutral.</strong> Categories whose anchors fire everywhere
+    (DoS, Front Running) drove the model toward positives regardless of the prompt's warning.
+    An anchor that tags 90% of blocks carries no information and should not be shown.</li>
+    <li><strong>Cost is not the reason to do this.</strong> 1.4% is noise. The defensible wins
+    are 56.6% fewer tokens against a context limit and 19.7% less wall clock.</li>
+    <li><strong>n = 50, single run.</strong> A 0.7 pp agreement delta on 400 cells is well
+    inside run-to-run variance. Nothing here separates the two arms on raw agreement; the
+    per-category movements (+14, −14) are the only shifts large enough to act on.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Next</p>
+    <h2>Three changes worth testing</h2>
+  </div>
+  <ul>
+    <li><strong>Drop <code>require(</code>, <code>revert</code>, <code>assert(</code> from the
+    DoS anchor</strong> and re-check recall. If DoS recall survives on loop and external-call
+    anchors alone, that alone should recover most of the 14-point loss.</li>
+    <li><strong>Suppress tags above a coverage threshold.</strong> If a category tags more than
+    ~60% of a contract's blocks, emit the blocks without that tag — it is noise, and the model
+    treats it as signal.</li>
+    <li><strong>Run the sliced arm without tags at all.</strong> That separates the two things
+    this experiment currently confounds: the effect of removing code, and the effect of naming
+    candidate categories. Given the token cut is safe, the tag-free variant is the cleaner
+    default if it holds agreement.</li>
+  </ul>
+</section>
+
+<footer>
+  <p>Baseline <span class="mono">results_50_calibrated.json</span> · Sliced <span class="mono">results_50_sliced.json</span> · Pre-filter <span class="mono">slice.py</span> · Comparison <span class="mono">compare_ab.py</span></p>
+  <p>Both arms: Claude Opus 5, effort=high, prompt=calibrated, tools disabled, 50 stratified DIVE contracts, 400 label cells.</p>
+</footer>
+
+</div>

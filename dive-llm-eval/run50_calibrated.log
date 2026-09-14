@@ -1,0 +1,74 @@
+[1/50] contract 61 (4700 chars) ...   17.2s    12474 tok  agree 6/8
+[2/50] contract 509 (2358 chars) ...   12.1s     9930 tok  agree 6/8
+[3/50] contract 568 (9133 chars) ...   14.9s    15143 tok  agree 5/8
+[4/50] contract 668 (12064 chars) ...   19.9s    18479 tok  agree 4/8
+[5/50] contract 2968 (2374 chars) ...   11.8s     9969 tok  agree 6/8
+[6/50] contract 3495 (3072 chars) ...   22.2s    12004 tok  agree 6/8
+[7/50] contract 3523 (21995 chars) ...   23.8s    26252 tok  agree 4/8
+[8/50] contract 4704 (10921 chars) ...   31.8s    20599 tok  agree 7/8
+[9/50] contract 4919 (11953 chars) ...   20.2s    18568 tok  agree 3/8
+[10/50] contract 5665 (11595 chars) ...   22.3s    18700 tok  agree 6/8
+[11/50] contract 5951 (17155 chars) ...   16.3s    21223 tok  agree 5/8
+[12/50] contract 6305 (17110 chars) ...   13.9s    20547 tok  agree 5/8
+[13/50] contract 6778 (11532 chars) ...   24.8s    18639 tok  agree 4/8
+[14/50] contract 7383 (11436 chars) ...   18.7s    17166 tok  agree 4/8
+[15/50] contract 7469 (6001 chars) ...   21.7s    14286 tok  agree 3/8
+[16/50] contract 7689 (11728 chars) ...   25.4s    19144 tok  agree 3/8
+[17/50] contract 7701 (12658 chars) ...   23.0s    19254 tok  agree 5/8
+[18/50] contract 7710 (3660 chars) ...   12.2s    10840 tok  agree 5/8
+[19/50] contract 8389 (5993 chars) ...   12.7s    13462 tok  agree 7/8
+[20/50] contract 8577 (8902 chars) ...   31.1s    17708 tok  agree 6/8
+[21/50] contract 9160 (11041 chars) ...   22.0s    27466 tok  agree 5/8
+[22/50] contract 9400 (16509 chars) ...   20.9s    22467 tok  agree 5/8
+[23/50] contract 9837 (3522 chars) ...    9.3s    10301 tok  agree 5/8
+[24/50] contract 10030 (10116 chars) ...   16.1s    16612 tok  agree 6/8
+[25/50] contract 10031 (13291 chars) ...   32.7s    21445 tok  agree 4/8
+[26/50] contract 10111 (17906 chars) ...   18.0s    23243 tok  agree 5/8
+[27/50] contract 10363 (16372 chars) ...   14.4s    21528 tok  agree 6/8
+[28/50] contract 11108 (8721 chars) ...   20.6s    16339 tok  agree 6/8
+[29/50] contract 11242 (8900 chars) ...   24.2s    15554 tok  agree 5/8
+[30/50] contract 11577 (4562 chars) ...   25.1s    13292 tok  agree 6/8
+[31/50] contract 11664 (11794 chars) ...   21.8s    18678 tok  agree 3/8
+[32/50] contract 11770 (27687 chars) ...   19.8s    30006 tok  agree 5/8
+[33/50] contract 12068 (4827 chars) ...   18.7s    12781 tok  agree 6/8
+[34/50] contract 12191 (11683 chars) ...   18.9s    18070 tok  agree 4/8
+[35/50] contract 13761 (10817 chars) ...   11.4s    15946 tok  agree 6/8
+[36/50] contract 13910 (10086 chars) ...   22.5s    18093 tok  agree 5/8
+[37/50] contract 15871 (14865 chars) ...   15.4s    19934 tok  agree 5/8
+[38/50] contract 16156 (8505 chars) ...   17.5s    15633 tok  agree 3/8
+[39/50] contract 16457 (13580 chars) ...   17.5s    19820 tok  agree 3/8
+[40/50] contract 16751 (11848 chars) ...   25.4s    19235 tok  agree 5/8
+[41/50] contract 17113 (23342 chars) ...   24.7s    28744 tok  agree 4/8
+[42/50] contract 17537 (13128 chars) ...   27.7s    20761 tok  agree 6/8
+[43/50] contract 18565 (5671 chars) ...   30.8s    14706 tok  agree 5/8
+[44/50] contract 18668 (18002 chars) ...   34.2s    38466 tok  agree 2/8
+[45/50] contract 18981 (16169 chars) ...   11.1s    20294 tok  agree 6/8
+[46/50] contract 19099 (6081 chars) ...   19.8s    13326 tok  agree 6/8
+[47/50] contract 19147 (4348 chars) ...   14.7s    11760 tok  agree 4/8
+[48/50] contract 19288 (4320 chars) ...   24.0s    13516 tok  agree 5/8
+[49/50] contract 19417 (11605 chars) ...   19.7s    18229 tok  agree 5/8
+[50/50] contract 20827 (16405 chars) ...   24.8s    23326 tok  agree 6/8
+
+==========================================================================
+Model opus (effort=high, prompt=calibrated) vs DIVE labels - 50 contracts
+==========================================================================
+Label agreement    : 0.6175  (247/400 label cells)
+Exact match (8/8)  : 0/50
+Hamming loss       : 0.3825
+
+category                 DIVE+  LLM+  TP  FP  FN   agree   kappa
+Reentrancy                  22    23  18   5   4   0.820   0.636
+Access Control              39     6   6   0  33   0.340   0.074
+Arithmetic                  23    17   9   8  14   0.560   0.097
+Unchecked Return Values      5    12   1  11   4   0.700  -0.027
+DoS                          7    13   4   9   3   0.760   0.267
+Bad Randomness               5     3   3   0   2   0.960   0.730
+Front Running                5    46   3  43   2   0.100  -0.077
+Time manipulation           13    28  13  15   0   0.700   0.433
+
+Wall clock         : 1019.56s total, 20.39s/contract
+API time (CLI)     : 1024.6s
+Tokens             : 913958 total (in 204, out 63798, cache-write 125385, cache-read 724571)
+Cost               : $3.4103
+
+Full results -> results_50_calibrated.json

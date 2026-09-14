@@ -1,0 +1,102 @@
+{
+  "rows": [
+    {
+      "name": "MAIAN",
+      "kind": "tool",
+      "ran": 10,
+      "tp": 0,
+      "fp": 0,
+      "fn": 4,
+      "precision": null,
+      "recall_ran": 0.0,
+      "recall_all": 0.0,
+      "f1": 0.0
+    },
+    {
+      "name": "Mythril",
+      "kind": "tool",
+      "ran": 40,
+      "tp": 10,
+      "fp": 0,
+      "fn": 6,
+      "precision": 1.0,
+      "recall_ran": 0.625,
+      "recall_all": 0.625,
+      "f1": 0.7692307692307693
+    },
+    {
+      "name": "Semgrep",
+      "kind": "tool",
+      "ran": 25,
+      "tp": 1,
+      "fp": 0,
+      "fn": 9,
+      "precision": 1.0,
+      "recall_ran": 0.1,
+      "recall_all": 0.0625,
+      "f1": 0.11764705882352941
+    },
+    {
+      "name": "Slither",
+      "kind": "tool",
+      "ran": 14,
+      "tp": 3,
+      "fp": 0,
+      "fn": 4,
+      "precision": 1.0,
+      "recall_ran": 0.42857142857142855,
+      "recall_all": 0.1875,
+      "f1": 0.3157894736842105
+    },
+    {
+      "name": "Solhint",
+      "kind": "tool",
+      "ran": 30,
+      "tp": 8,
+      "fp": 1,
+      "fn": 4,
+      "precision": 0.8888888888888888,
+      "recall_ran": 0.6666666666666666,
+      "recall_all": 0.5,
+      "f1": 0.64
+    },
+    {
+      "name": "VeriSmart",
+      "kind": "tool",
+      "ran": 2,
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "precision": null,
+      "recall_ran": 0.0,
+      "recall_all": 0.0,
+      "f1": 0.0
+    },
+    {
+      "name": "Opus\u00b7examples",
+      "kind": "llm",
+      "ran": 40,
+      "tp": 6,
+      "fp": 2,
+      "fn": 10,
+      "precision": 0.75,
+      "recall_ran": 0.375,
+      "recall_all": 0.375,
+      "f1": 0.5
+    },
+    {
+      "name": "Opus\u00b7calibrated",
+      "kind": "llm",
+      "ran": 40,
+      "tp": 11,
+      "fp": 5,
+      "fn": 5,
+      "precision": 0.6875,
+      "recall_ran": 0.6875,
+      "recall_all": 0.6875,
+      "f1": 0.6875
+    }
+  ],
+  "n_pos": 16,
+  "n_cells": 40
+}

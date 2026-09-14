@@ -1,0 +1,402 @@
+<title>DIVE Label Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+:root{
+  --ground:#F5F6F8;      --panel:#FFFFFF;      --sunk:#ECEEF2;
+  --ink:#151A21;         --ink-2:#48525F;      --ink-3:#79838F;
+  --rule:#D9DDE4;        --rule-2:#C3C9D2;
+  --accent:#9C5A18;      --accent-soft:#F2E4D5;
+  --agree:#2C6F62;       --agree-soft:#DCEAE6;
+  --miss:#A8681A;        --miss-soft:#F6E7D1;
+  --over:#6B4E9E;        --over-soft:#E8E2F3;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1319;   --panel:#161B22;   --sunk:#1D232B;
+    --ink:#E7EAEE;      --ink-2:#A6AFBB;   --ink-3:#79838F;
+    --rule:#293039;     --rule-2:#39414C;
+    --accent:#DFA063;   --accent-soft:#32241A;
+    --agree:#6FBFAC;    --agree-soft:#152E29;
+    --miss:#DFA85C;     --miss-soft:#33280F;
+    --over:#A88FD6;     --over-soft:#252039;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1319;   --panel:#161B22;   --sunk:#1D232B;
+  --ink:#E7EAEE;      --ink-2:#A6AFBB;   --ink-3:#79838F;
+  --rule:#293039;     --rule-2:#39414C;
+  --accent:#DFA063;   --accent-soft:#32241A;
+  --agree:#6FBFAC;    --agree-soft:#152E29;
+  --miss:#DFA85C;     --miss-soft:#33280F;
+  --over:#A88FD6;     --over-soft:#252039;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--body); font-size:17px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1160px;margin:0 auto;padding:0 28px 96px}
+.col{max-width:68ch}
+
+header.mast{border-bottom:2px solid var(--ink);margin-bottom:38px;padding:52px 0 22px}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 18px
+}
+h1{
+  font-family:var(--display);font-weight:700;font-size:clamp(34px,5.2vw,56px);
+  line-height:1.03;letter-spacing:-.022em;margin:0 0 16px;text-wrap:balance
+}
+.standfirst{font-size:20px;line-height:1.5;color:var(--ink-2);margin:0;max-width:62ch}
+.byline{
+  display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:26px;
+  font-family:var(--mono);font-size:11.5px;color:var(--ink-3);letter-spacing:.02em
+}
+.byline b{color:var(--ink-2);font-weight:600}
+
+.verdict{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);margin:0 0 52px
+}
+.vc{background:var(--panel);padding:20px 18px}
+.vc .n{
+  font-family:var(--display);font-weight:700;font-size:31px;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;line-height:1.1;display:block
+}
+.vc .k{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);margin-top:7px;display:block
+}
+.vc.hi .n{color:var(--accent)}
+
+section{margin:0 0 60px}
+h2{
+  font-family:var(--display);font-weight:700;font-size:27px;letter-spacing:-.015em;
+  margin:0 0 6px;text-wrap:balance
+}
+h2 .num{
+  font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);
+  letter-spacing:.1em;display:block;margin-bottom:9px
+}
+h3{
+  font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:-.008em;
+  margin:34px 0 8px
+}
+p{margin:0 0 15px}
+.lede{font-size:18.5px;color:var(--ink-2);margin-bottom:22px}
+code{font-family:var(--mono);font-size:.855em;background:var(--sunk);padding:1px 5px;border-radius:2px}
+strong{font-weight:600}
+ul{margin:0 0 15px;padding-left:20px}
+li{margin-bottom:7px}
+
+.scroll{overflow-x:auto;margin:22px 0;border:1px solid var(--rule);background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12.5px}
+th{
+  text-align:left;font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);padding:11px 12px;border-bottom:1px solid var(--rule-2);white-space:nowrap
+}
+td{padding:9px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:none}
+td.name{font-family:var(--body);font-size:15px;white-space:normal}
+.num-col{text-align:right}
+tr.total td{border-top:1px solid var(--rule-2);font-weight:600;color:var(--ink)}
+.dim{color:var(--ink-3)}
+
+/* master table */
+.master table{font-size:12px}
+.master th{padding:10px 9px;text-align:center}
+.master th.lft{text-align:left}
+.master td{padding:7px 9px;text-align:center}
+.master td.lft{text-align:left}
+.master .cid{font-weight:600;color:var(--ink-2)}
+.master tr.grp td{
+  background:var(--sunk);font-weight:600;color:var(--ink);
+  font-size:11px;letter-spacing:.06em;text-transform:uppercase;text-align:left
+}
+.master .na{color:var(--ink-3);opacity:.55}
+.master .one{color:var(--accent);font-weight:600}
+.master .zero{color:var(--ink-3)}
+.master .sep{border-left:1px solid var(--rule-2)}
+.v-match{color:var(--agree)}
+.v-dive{color:var(--miss);font-weight:600}
+.v-opus{color:var(--over);font-weight:600}
+.master tr.r-dive td{background:var(--miss-soft)}
+.master tr.r-opus td{background:var(--over-soft)}
+
+/* TP / FN recall table */
+.master td.tp{background:var(--agree-soft);color:var(--agree);font-weight:600}
+.master td.fn{background:var(--miss-soft);color:var(--miss);font-weight:600}
+.master td.nr{color:var(--ink-3);opacity:.5;font-size:11px}
+.master tr.tot td{
+  border-top:1px solid var(--rule-2);font-weight:600;color:var(--ink);
+  background:var(--panel);font-size:11.5px
+}
+.master tr.tot td.lft{
+  font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)
+}
+.legend{
+  display:flex;flex-wrap:wrap;gap:8px 22px;margin:14px 0 4px;
+  font-family:var(--mono);font-size:11px;color:var(--ink-3)
+}
+.legend i{display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px;font-style:normal}
+.sw-ok{background:var(--agree-soft);border:1px solid var(--agree)}
+.sw-fn{background:var(--miss-soft);border:1px solid var(--miss)}
+.sw-nr{background:var(--sunk);border:1px solid var(--rule-2)}
+.master td.circ{color:var(--ink-3)}
+.master tr.tot td.circ{font-weight:400}
+.circ{color:var(--miss);font-weight:600}
+.caveat{
+  border:1px solid var(--miss);border-left:3px solid var(--miss);
+  background:var(--miss-soft);padding:18px 22px;margin:20px 0;font-size:15.5px;line-height:1.55
+}
+.caveat p{margin:0 0 10px}
+.caveat p:last-child{margin-bottom:0}
+.caveat b{font-weight:600}
+
+.defs{border:1px solid var(--rule);background:var(--panel);margin:24px 0}
+.defs dl{margin:0;display:grid;grid-template-columns:minmax(130px,180px) 1fr}
+.defs dt{
+  font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);
+  padding:13px 16px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule)
+}
+.defs dd{margin:0;padding:13px 18px;border-bottom:1px solid var(--rule);font-size:15.5px;line-height:1.55}
+.defs dt:last-of-type,.defs dd:last-of-type{border-bottom:none}
+
+.finding{
+  background:var(--panel);border:1px solid var(--rule);
+  border-left:3px solid var(--accent);padding:24px 26px;margin:26px 0
+}
+.finding .tag{
+  font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent);display:block;margin-bottom:10px
+}
+.finding h3{margin-top:0}
+.finding p:last-child{margin-bottom:0}
+.finding.cool{border-left-color:var(--over)}
+.finding.cool .tag{color:var(--over)}
+
+pre{
+  font-family:var(--mono);font-size:12.5px;line-height:1.62;background:var(--panel);
+  border:1px solid var(--rule);padding:16px 18px;overflow-x:auto;margin:18px 0
+}
+pre b{color:var(--accent);font-weight:600}
+pre .cm{color:var(--ink-3)}
+
+footer{border-top:1px solid var(--rule);margin-top:20px;padding-top:22px;
+  font-family:var(--mono);font-size:11.5px;color:var(--ink-3);line-height:1.7}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:640px){
+  body{font-size:16px} .wrap{padding:0 18px 64px}
+  header.mast{padding-top:34px}
+  .defs dl{grid-template-columns:1fr}
+  .defs dt{border-right:none;padding-bottom:0;border-bottom:none}
+}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Dataset audit · Zenodo 18519253</p>
+  <h1>The prompt that won on five contracts lost on fifty</h1>
+  <p class="standfirst">A tuned prompt took Claude Opus 5 from F<sub>1</sub> 0.50 to 0.69 against
+  DIVE's labels on a five-contract set. Rerun on fifty contracts at realistic base rates, the same
+  prompt scores 0.43 — behind Slither, behind Solhint. One over-broad rule did nearly all the
+  damage.</p>
+  <div class="byline">
+    <span><b>50</b> contracts</span>
+    <span><b>400</b> label cells</span>
+    <span><b>1,020 s</b> wall clock</span>
+    <span><b>913,958</b> tokens</span>
+    <span><b>$3.41</b></span>
+    <span>Opus 5, effort=high, detector-calibrated prompt</span>
+  </div>
+</header>
+
+<div class="verdict">
+  <div class="vc hi"><span class="n">0.427</span><span class="k">Opus F<sub>1</sub> · 50 contracts</span></div>
+  <div class="vc"><span class="n">0.688</span><span class="k">same prompt · 5 contracts</span></div>
+  <div class="vc"><span class="n">0.691</span><span class="k">Slither F<sub>1</sub></span></div>
+  <div class="vc"><span class="n">91</span><span class="k">Opus false positives</span></div>
+  <div class="vc"><span class="n">43</span><span class="k">from one prompt rule</span></div>
+</div>
+
+<section class="col">
+  <h2><span class="num">01</span>What happened</h2>
+  <p class="lede">A prompt tuned on 40 label cells did not survive 400.</p>
+  <p>The previous round tuned the system prompt against five contracts. Adding worked examples of
+  each vulnerability moved F<sub>1</sub> from 0.48 to 0.50; adding an explicit threshold calibration
+  — telling the model to fire when a pattern is present rather than when an exploit is provable —
+  moved it to 0.688, which beat every analyzer on recall. That looked like a result.</p>
+  <p>It was not. On fifty contracts drawn at close to DIVE's real base rates, the same prompt scores
+  <strong>F<sub>1</sub> 0.427</strong>, with 91 false positives against 57 true. Slither, which was
+  well behind on the small set, scores 0.691.</p>
+  <p>The five-contract set had 16 positive cells. Every per-category figure rested on two. That is
+  not enough surface for a prompt change to be measured on, and the earlier round said so in its
+  limitations — but the number still got quoted as if it meant something. This page is what the
+  larger sample says instead.</p>
+</section>
+
+<section>
+  <div class="col">
+    <h2><span class="num">02</span>The sample</h2>
+    <p class="lede">Fifty contracts, stratified, close to dataset prevalence.</p>
+    <p>Drawn by seeded random sample from contracts between 1.2 KB and 30 KB, then repaired so every
+    category carries at least five positives and five negatives — otherwise Bad Randomness (2.8%
+    dataset-wide) and Front Running (2.7%) would likely appear zero times. Those two are therefore
+    over-represented; the other six sit close to their true rates.</p>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Category</th><th class="num-col">Positive</th><th class="num-col">Negative</th>
+        <th class="num-col">Rate here</th><th class="num-col">Dataset rate</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Reentrancy</td><td class="num-col">22</td><td class="num-col">28</td><td class="num-col">44%</td><td class="num-col dim">51.1%</td></tr>
+        <tr><td class="name">Access Control</td><td class="num-col">39</td><td class="num-col">11</td><td class="num-col">78%</td><td class="num-col dim">74.9%</td></tr>
+        <tr><td class="name">Arithmetic</td><td class="num-col">23</td><td class="num-col">27</td><td class="num-col">46%</td><td class="num-col dim">42.7%</td></tr>
+        <tr><td class="name">Unchecked Return Values</td><td class="num-col">5</td><td class="num-col">45</td><td class="num-col">10%</td><td class="num-col dim">26.5%</td></tr>
+        <tr><td class="name">DoS</td><td class="num-col">7</td><td class="num-col">43</td><td class="num-col">14%</td><td class="num-col dim">16.9%</td></tr>
+        <tr><td class="name">Bad Randomness</td><td class="num-col">5</td><td class="num-col">45</td><td class="num-col">10%</td><td class="num-col dim">2.8%</td></tr>
+        <tr><td class="name">Front Running</td><td class="num-col">5</td><td class="num-col">45</td><td class="num-col">10%</td><td class="num-col dim">2.7%</td></tr>
+        <tr><td class="name">Time manipulation</td><td class="num-col">13</td><td class="num-col">37</td><td class="num-col">26%</td><td class="num-col dim">28.3%</td></tr>
+        <tr class="total"><td class="name">All eight</td><td class="num-col">119</td><td class="num-col">281</td><td class="num-col">30%</td><td class="num-col dim">30.7%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <p>119 of 400 cells are positive (29.8%), against 30.7% dataset-wide. Mean 2.38 labels per
+    contract, against 2.46. The sample is representative on aggregate; the two rare categories are
+    the known exception.</p>
+  </div>
+</section>
+
+<section>
+  <div class="col">
+    <h2><span class="num">03</span>Every predictor, scored against DIVE</h2>
+    <p class="lede">400 cells, 119 of them positive.</p>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Predictor</th><th class="num-col">Ran</th><th class="num-col">Blank</th>
+        <th class="num-col">TP</th><th class="num-col">FP</th><th class="num-col">FN</th>
+        <th class="num-col">Prec ◑</th><th class="num-col">Recall</th><th class="num-col">F<sub>1</sub> ◑</th>
+        <th>Reading</th></tr></thead>
+      <tbody>
+        <tr><td>MAIAN</td><td class="num-col">86</td><td class="num-col dim">314</td><td class="num-col">0</td><td class="num-col">2</td><td class="num-col">44</td><td class="num-col circ">0.000</td><td class="num-col ">0.000</td><td class="num-col circ">0.000</td><td class="name dim">barely ran; no positives</td></tr>
+        <tr><td>Mythril</td><td class="num-col">312</td><td class="num-col dim">88</td><td class="num-col">23</td><td class="num-col">0</td><td class="num-col">78</td><td class="num-col circ">1.000</td><td class="num-col ">0.193</td><td class="num-col circ">0.324</td><td class="name dim">full coverage — the only tool comparable cell-for-cell</td></tr>
+        <tr><td>Semgrep</td><td class="num-col">220</td><td class="num-col dim">180</td><td class="num-col">0</td><td class="num-col">0</td><td class="num-col">96</td><td class="num-col circ">n/a</td><td class="num-col ">0.000</td><td class="num-col circ">0.000</td><td class="name dim">near-silent</td></tr>
+        <tr><td>Slither</td><td class="num-col">301</td><td class="num-col dim">99</td><td class="num-col">67</td><td class="num-col">8</td><td class="num-col">40</td><td class="num-col circ">0.893</td><td class="num-col ">0.563</td><td class="num-col circ">0.691</td><td class="name dim">partial coverage</td></tr>
+        <tr><td>Solhint</td><td class="num-col">294</td><td class="num-col dim">106</td><td class="num-col">57</td><td class="num-col">17</td><td class="num-col">34</td><td class="num-col circ">0.770</td><td class="num-col ">0.479</td><td class="num-col circ">0.591</td><td class="name dim">a style linter, not a security analyzer</td></tr>
+        <tr><td>VeriSmart</td><td class="num-col">22</td><td class="num-col dim">378</td><td class="num-col">14</td><td class="num-col">0</td><td class="num-col">8</td><td class="num-col circ">1.000</td><td class="num-col ">0.118</td><td class="num-col circ">0.211</td><td class="name dim">barely ran; no positives</td></tr>
+        <tr class="total"><td>Opus 5 · calibrated</td><td class="num-col">400</td><td class="num-col dim">0</td><td class="num-col">57</td><td class="num-col">91</td><td class="num-col">62</td><td class="num-col ">0.385</td><td class="num-col ">0.479</td><td class="num-col ">0.427</td><td class="name dim">source only, no tools</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <div class="caveat">
+      <p><b>◑ Tool precision and F<sub>1</sub> remain circular.</b> DIVE's label is derived from these
+      six analyzers, so they largely cannot produce a false positive against it. Recall is the column
+      that compares honestly, because a tool can still miss a cell that a different tool put into the
+      label.</p>
+      <p>On that column Opus scores <b>0.479</b> — level with Solhint, behind Slither's 0.563. On the
+      five-contract set it led everything at 0.688. The lead did not survive.</p>
+    </div>
+    <p>Slither is the strongest predictor here on every measure, and note how much its coverage
+    improved on this sample: it returned a verdict on 300 of 400 cells, against 14 of 40 last time.
+    The earlier run happened to draw contracts Slither had mostly skipped, which flattered everything
+    it was compared against.</p>
+  </div>
+</section>
+
+<section>
+  <div class="col">
+    <h2><span class="num">04</span>Where Opus went wrong</h2>
+    <p class="lede">Two categories account for most of the damage.</p>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Category</th><th class="num-col">DIVE +</th><th class="num-col">Opus +</th>
+        <th class="num-col">TP</th><th class="num-col">FP</th><th class="num-col">FN</th>
+        <th class="num-col">Prec</th><th class="num-col">Recall</th><th class="num-col">F<sub>1</sub></th></tr></thead>
+      <tbody>
+        <tr><td class="name">Reentrancy</td><td class="num-col">22</td><td class="num-col">23</td><td class="num-col">18</td><td class="num-col">5</td><td class="num-col">4</td><td class="num-col ">0.78</td><td class="num-col ">0.82</td><td class="num-col ">0.80</td></tr>
+        <tr><td class="name">Access Control</td><td class="num-col">39</td><td class="num-col">6</td><td class="num-col">6</td><td class="num-col">0</td><td class="num-col">33</td><td class="num-col ">1.00</td><td class="num-col ">0.15</td><td class="num-col ">0.27</td></tr>
+        <tr><td class="name">Arithmetic</td><td class="num-col">23</td><td class="num-col">17</td><td class="num-col">9</td><td class="num-col">8</td><td class="num-col">14</td><td class="num-col ">0.53</td><td class="num-col ">0.39</td><td class="num-col ">0.45</td></tr>
+        <tr><td class="name">Unchecked Return Values</td><td class="num-col">5</td><td class="num-col">12</td><td class="num-col">1</td><td class="num-col">11</td><td class="num-col">4</td><td class="num-col ">0.08</td><td class="num-col ">0.20</td><td class="num-col ">0.12</td></tr>
+        <tr><td class="name">DoS</td><td class="num-col">7</td><td class="num-col">13</td><td class="num-col">4</td><td class="num-col">9</td><td class="num-col">3</td><td class="num-col ">0.31</td><td class="num-col ">0.57</td><td class="num-col ">0.40</td></tr>
+        <tr><td class="name">Bad Randomness</td><td class="num-col">5</td><td class="num-col">3</td><td class="num-col">3</td><td class="num-col">0</td><td class="num-col">2</td><td class="num-col ">1.00</td><td class="num-col ">0.60</td><td class="num-col ">0.75</td></tr>
+        <tr><td class="name">Front Running</td><td class="num-col">5</td><td class="num-col">46</td><td class="num-col">3</td><td class="num-col">43</td><td class="num-col">2</td><td class="num-col ">0.07</td><td class="num-col ">0.60</td><td class="num-col ">0.12</td></tr>
+        <tr><td class="name">Time manipulation</td><td class="num-col">13</td><td class="num-col">28</td><td class="num-col">13</td><td class="num-col">15</td><td class="num-col">0</td><td class="num-col ">0.46</td><td class="num-col ">1.00</td><td class="num-col ">0.63</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="finding">
+    <span class="tag">43 of 91 false positives · one rule</span>
+    <h3>Front Running: Opus flagged 46 of 50 contracts. DIVE flags 5.</h3>
+    <p>The calibrated prompt included this firing rule, written after the five-contract round:</p>
+    <pre>Front Running: any ERC20-style approve that sets an allowance directly, and any
+public function whose payoff depends on landing before someone else.</pre>
+    <p>Nearly every ERC20 token in the sample has a standard <code>approve()</code>. The rule fired
+    on all of them. Of the 43 false positives, <strong>40 give the allowance race as the reason</strong>
+    — the model followed the instruction exactly and the instruction was wrong at scale.</p>
+    <p>The rule was not baseless: the ERC20 approve race is a real, documented hazard, and on the
+    five-contract set it produced two clean true positives. But DIVE only labels Front Running when a
+    tool reports it, which is rare. Writing a rule that fires on a ubiquitous pattern guarantees a
+    false positive on every token contract in the corpus.</p>
+  </div>
+
+  <div class="finding cool">
+    <span class="tag">33 of 62 false negatives</span>
+    <h3>Access Control: DIVE flags 39, Opus flags 6</h3>
+    <p>The opposite failure, and the larger one in raw count. DIVE marks Access Control positive on
+    78% of this sample — its most common label by far, and implausibly high as a description of real
+    vulnerability. Opus, reading source, finds it 6 times.</p>
+    <p>Mean confidence on the 33 misses is 0.54, so the model is genuinely uncertain here rather than
+    confidently wrong. This is the category where DIVE's own labels most deserve scrutiny: at a 75%
+    dataset-wide positive rate, the label is closer to "this contract has an owner" than to "this
+    contract has an authorization flaw".</p>
+  </div>
+
+  <div class="col">
+    <p>Reentrancy is the one clear success: 18 true positives against 5 false, F<sub>1</sub> 0.80,
+    κ 0.64. Bad Randomness also holds up (F<sub>1</sub> 0.75) on a small base. Both are categories
+    with crisp syntactic signatures, which is exactly where a detector and a reader agree.</p>
+  </div>
+</section>
+
+<section class="col">
+  <h2><span class="num">05</span>What to take from this</h2>
+  <p><strong>On the method.</strong> A prompt tuned against 40 label cells and validated on the same
+  40 cells is not evidence. The calibration looked like a large gain and was mostly an artifact of a
+  tiny, category-balanced sample. The honest version of the earlier claim is: threshold instructions
+  move the model a great deal, in whichever direction they point, and a small eval cannot tell you
+  whether the direction generalises.</p>
+  <p><strong>On DIVE.</strong> The audit's original finding survives, and this run strengthens it.
+  Access Control positive on 78% of contracts and Reentrancy on 44% are not credible vulnerability
+  rates; they are what union-of-analyzer labelling produces. The categories where an independent
+  reader and the label agree — Reentrancy, Bad Randomness — are the ones with crisp signatures. The
+  categories where they diverge most are the ones where DIVE's rate is least plausible.</p>
+  <p><strong>Not shown here.</strong> Whether the calibrated prompt is worse than the plain
+  example-augmented prompt at this scale. That arm was not run on these 50 contracts, so the
+  comparison across prompts still rests on five contracts and should not be trusted. Running it is
+  the obvious next step, and it is the one that would actually settle whether the calibration helped
+  or hurt.</p>
+</section>
+
+<footer>
+  Source data: DIVE v2 · doi.org/10.5281/zenodo.18519253 · CC-BY-4.0 · Alsunaidi, Aljamaan &amp; Hammoudeh, KFUPM<br>
+  Tool verdicts from <code>DIVE_Labels.zip → Tool_Results.csv</code> · labels via MultiTagging · DASP Top 10 categories 1–8<br>
+  Evaluation: Claude Opus 5, effort=high, tools disabled, schema-forced output · 50 contracts · 400 cells · 913,958 tokens · $3.41
+</footer>
+
+</div>
