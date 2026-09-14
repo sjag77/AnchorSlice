@@ -2,7 +2,7 @@
 """Build the IEEE-format manuscript as RTF (converted to .doc by textutil)."""
 import os, struct, binascii
 
-SC = '/private/tmp/claude-501/-Users-cnazk-SJ-dive-llm-eval/36a18fd3-487e-4d7b-bb9c-2e47e5bb799c/scratchpad'
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 ITEMS = []
 
@@ -364,7 +364,7 @@ B.append(P("The emitted document begins with the stubs for collapsed libraries a
     "the removed lines save, the contract is sent whole with comments stripped, which occurred "
     "for 11 of the 50 contracts in our sample.", first=False))
 B.append('\\sect\\sectd\\sbknone\\cols1\\linex0\n')
-B.append(picture(SC + '/fig/f1_2x.png', 9600))
+B.append(picture(os.path.join(HERE, 'fig1_pipeline.png'), 9600))
 B.append(caption("Fig. 1.  The two experimental arms. Only the three highlighted stages differ; "
                  "model, prompt, sampling and decoding settings are identical."))
 B.append('\\sect\\sectd\\sbknone\\cols2\\colsx397\\linex0\n')
@@ -465,7 +465,7 @@ B.append(P("Table IV reports every category and Fig. 2 shows the three that impr
     "manipulation held their agreement, and the former halved its false negatives, so six of the eight "
     "categories either improved or held. Arithmetic and bad randomness each moved back by 2.0 points, "
     "and DoS by 14.0 points, which we attribute to an over-broad anchor in Section VI.", first=False))
-B.append(picture(SC + '/fig/f2_2x.png', 9600))
+B.append(picture(os.path.join(HERE, 'fig2_per_category.png'), 9600))
 B.append(caption("Fig. 2.  Label agreement before and after slicing for the three categories "
                  "where agreement improved. Table IV reports all eight categories."))
 B.append('\\sect\\sectd\\sbknone\\cols2\\colsx397\\linex0\n')
@@ -631,7 +631,7 @@ RTF = ('{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033\n'
        '\\sect\\sectd\\sbknone\\cols2\\colsx397\\linex0\\widowctrl\n'
        + ''.join(B) + '}')
 
-out = '/Users/cnazk/SJ/dive-llm-eval/paper/AnchorSlice_manuscript.rtf'
+out = os.path.join(HERE, 'AnchorSlice_manuscript.rtf')
 open(out, 'w', encoding='ascii', errors='xmlcharrefreplace').write(RTF)
 print('RTF written: %.0f KB' % (os.path.getsize(out)/1024))
 print('references:', len(REFS))

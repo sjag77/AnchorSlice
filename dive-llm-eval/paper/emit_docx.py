@@ -206,7 +206,7 @@ STYLES = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
           '<w:style w:type="paragraph" w:default="1" w:styleId="Normal">'
           '<w:name w:val="Normal"/></w:style></w:styles>')
 
-out = '/Users/cnazk/SJ/dive-llm-eval/paper/AnchorSlice_manuscript.docx'
+out = os.path.join(bp.HERE, 'AnchorSlice_manuscript.docx')
 with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
     z.writestr('[Content_Types].xml', CT)
     z.writestr('_rels/.rels', RELS)

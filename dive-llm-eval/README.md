@@ -1,5 +1,9 @@
 # DIVE vs. Claude Opus 5 — label assessment harness
 
+> **Pilot study notes.** This file documents the first 10-contract run (Opus 5 vs Fable 5).
+> For AnchorSlice, the 50-contract A/B evaluation, and reproduction steps, see the
+> [top-level README](../README.md).
+
 Assesses the ground-truth vulnerability labels in the
 [DIVE dataset](https://doi.org/10.5281/zenodo.18519253) against an independent
 LLM auditor (Claude Opus 5), driven through the Claude Code CLI in headless mode.
