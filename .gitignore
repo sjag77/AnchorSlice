@@ -13,3 +13,9 @@ venv/
 
 # Office lock files
 ~$*
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.synctex.gz

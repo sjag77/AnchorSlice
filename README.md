@@ -42,7 +42,8 @@ was run once, and the DoS anchor is over-broad (DoS agreement fell 14 pp).
 ## Repository layout
 
 ```
-AnchorSlice_manuscript.pages     manuscript (Apple Pages)
+manuscript/                      IEEE Access LaTeX source and PDF of the manuscript
+AnchorSlice_manuscript.pages     earlier manuscript draft (Apple Pages)
 dive-llm-eval/
 ├── slice.py                     AnchorSlice itself (stdlib only)
 ├── select_stratified.py         seeded, stratified 50-contract sample  -> selected_ids_50.txt
@@ -102,9 +103,11 @@ python3 compare_ab.py results_50_calibrated.json results_50_sliced.json
 python3 score.py --ids selected_ids_50.txt results_50_calibrated.json:full results_50_sliced.json:sliced
 python3 gen_tables.py --ids selected_ids_50.txt --runs results_50_sliced.json:sliced --percat sliced
 
-# 5. Rebuild the manuscript
-cd paper && python3 build_paper.py && python3 emit_docx.py
+# 5. Rebuild the manuscript (IEEE Access LaTeX; run twice so references resolve)
+cd ../manuscript && pdflatex AnchorSlice_manuscript.tex && pdflatex AnchorSlice_manuscript.tex
 ```
+
+`dive-llm-eval/paper/` holds the earlier Word/RTF generator for the first draft; `manuscript/` is the current version.
 
 Step 4 needs no model access and reproduces every number above from the committed result files.
 `DIVE_SOURCE_DIR` is required in step 2 because `prepare_samples.py` otherwise picks up
