@@ -197,10 +197,104 @@ exploitable, not when a pattern merely appears.
 )
 
 
+SYSTEM_PROMPT_CALIBRATED2 = SYSTEM_PROMPT_CALIBRATED.replace(
+    "- Unchecked Return Values: any .call / .send / .delegatecall whose bool is not read, and any \
+ERC20 .transfer/.transferFrom whose return value is ignored.",
+    "- Unchecked Return Values: a .call / .send / .delegatecall whose bool is discarded, or an ERC20 \
+.transfer/.transferFrom whose return value is ignored. If the result is consumed by require, assert, an \
+if, or an assignment, it is checked: mark 0.",
+).replace(
+    "- DoS: any loop whose bound is a dynamic array, mapping length, or caller-supplied number - \
+especially one containing a transfer, an external call, or a require.",
+    "- DoS: a loop whose bound is a dynamic array, mapping length, or caller-supplied number, especially \
+one containing a transfer or external call; or a push-payment that a payee can make revert. A require, \
+revert or assert on its own is ordinary input validation, not DoS.",
+).replace(
+    "- Front Running: any ERC20-style approve that sets an allowance directly, and any public function \
+whose payoff depends on landing before someone else - claims, swaps, auctions, first-come rewards.",
+    "- Front Running: the ERC20 approve allowance race, or a function whose payoff demonstrably depends \
+on landing before someone else - auctions, first-come rewards, swaps without a slippage bound. A payable \
+function, a stored price, or ordinary state updates are not front running by themselves.",
+).replace(
+    "- Time manipulation: any comparison or branch on block.timestamp, now, or block.number.",
+    "- Time manipulation: a comparison or branch on block.timestamp, now, or block.number that decides a \
+payout, an eligibility window, or a winner. Recording or emitting a timestamp is not enough.",
+).replace(
+    "Calibration: contracts in this corpus carry 2.4 categories on average",
+    "Base rates in this corpus: Access Control 75%, Reentrancy 51%, Arithmetic 43%, Time manipulation 28%, \
+Unchecked Return Values 27%, DoS 17%, Bad Randomness 3%, Front Running 3%. The last two are rare: mark them \
+only on specific evidence.\n\nCalibration: contracts in this corpus carry 2.4 categories on average",
+)
+
+SYSTEM_PROMPT_CALIBRATED3 = SYSTEM_PROMPT_CALIBRATED2.replace(
+    "- Bad Randomness: any use of block.timestamp, now, blockhash, block.number, block.difficulty, \
+block.prevrandao or block.coinbase to select, order, or reward.",
+    "- Bad Randomness: this corpus marks it whenever block.number, blockhash, block.difficulty, \
+block.prevrandao or block.coinbase influences a decision or a stored value, even when nothing random is \
+intended - a sale window gated on block.number counts. block.timestamp on its own usually does not.",
+).replace(
+    "- Time manipulation: a comparison or branch on block.timestamp, now, or block.number that decides a \
+payout, an eligibility window, or a winner. Recording or emitting a timestamp is not enough.",
+    "- Time manipulation: block.timestamp or now deciding a payout, lock, deadline or eligibility window. \
+Recording or emitting a timestamp is not enough, and a contract that only uses block.number belongs to Bad \
+Randomness rather than here.",
+).replace(
+    "- Unchecked Return Values: a .call / .send / .delegatecall whose bool is discarded, or an ERC20 \
+.transfer/.transferFrom whose return value is ignored. If the result is consumed by require, assert, an \
+if, or an assignment, it is checked: mark 0.",
+    "- Unchecked Return Values: a low-level .call / .send / .delegatecall / .callcode whose bool is \
+discarded, or an ERC20 .transfer/.transferFrom whose returned bool is ignored. A result consumed by \
+require, assert, an if, or an assignment is checked: mark 0. An ignored approve() to a router or pair, and \
+a payable address .transfer() that reverts on failure, do not count.",
+).replace(
+    "- DoS: a loop whose bound is a dynamic array, mapping length, or caller-supplied number, especially \
+one containing a transfer or external call; or a push-payment that a payee can make revert. A require, \
+revert or assert on its own is ordinary input validation, not DoS.",
+    "- DoS: a loop over a storage array or mapping that untrusted callers can grow without bound, \
+especially one containing a transfer or external call; or a payment whose failure blocks other users. A \
+loop over an argument the caller passes in, an owner-only batch, a fixed bound, or a bare require is not \
+DoS.",
+)
+
+SYSTEM_PROMPT_CALIBRATED4 = SYSTEM_PROMPT_CALIBRATED3.replace(
+    "- Unchecked Return Values: a low-level .call / .send / .delegatecall / .callcode whose bool is \
+discarded, or an ERC20 .transfer/.transferFrom whose returned bool is ignored. A result consumed by \
+require, assert, an if, or an assignment is checked: mark 0. An ignored approve() to a router or pair, and \
+a payable address .transfer() that reverts on failure, do not count.",
+    "- Unchecked Return Values: in this corpus the label tracks the presence of a raw low-level call. Mark \
+1 when the contract contains .call(, .call{, .call., .callcode or .delegatecall anywhere, including inside \
+a helper library, whether or not the returned bool is checked. A contract whose only external calls are \
+.send(), .transfer(), approve() or ERC20 transfer/transferFrom is normally 0.",
+).replace(
+    "- DoS: a loop over a storage array or mapping that untrusted callers can grow without bound, \
+especially one containing a transfer or external call; or a payment whose failure blocks other users. A \
+loop over an argument the caller passes in, an owner-only batch, a fixed bound, or a bare require is not \
+DoS.",
+    "- DoS: mark 1 for any of three shapes - a while loop; a for/while loop whose body performs a \
+.send/.transfer/.call; or a push payment guarded by if (!addr.send(...)) or assert(addr.send(...)), where \
+one failing payee blocks the flow. A plain for loop over a caller-supplied argument, an owner-only batch, \
+a fixed bound, or a bare require is 0.",
+)
+
+SYSTEM_PROMPT_CALIBRATED5 = SYSTEM_PROMPT_CALIBRATED4.replace(
+    "- Bad Randomness: this corpus marks it whenever block.number, blockhash, block.difficulty, \
+block.prevrandao or block.coinbase influences a decision or a stored value, even when nothing random is \
+intended - a sale window gated on block.number counts. block.timestamp on its own usually does not.",
+    "- Bad Randomness: mark 1 when blockhash, block.difficulty, block.prevrandao or block.coinbase is \
+used at all, when block.number takes part in arithmetic that derives a value or an index, or when a hash \
+(keccak256/sha3) is computed over a block value or timestamp. A plain comparison against block.number, such \
+as a sale window or a lock period, is usually not marked in this corpus: mark 0 unless one of the shapes \
+above is present.",
+)
+
 PROMPTS = {
     "brief": SYSTEM_PROMPT_BRIEF,
     "examples": SYSTEM_PROMPT_EXAMPLES,
     "calibrated": SYSTEM_PROMPT_CALIBRATED,
+    "calibrated2": SYSTEM_PROMPT_CALIBRATED2,
+    "calibrated3": SYSTEM_PROMPT_CALIBRATED3,
+    "calibrated4": SYSTEM_PROMPT_CALIBRATED4,
+    "calibrated5": SYSTEM_PROMPT_CALIBRATED5,
 }
 
 SCHEMA = {
@@ -326,9 +420,10 @@ def main():
     ap.add_argument("--model", default="opus", help="CLI model alias or full id")
     ap.add_argument("--effort", default="high", choices=["low", "medium", "high", "xhigh", "max"])
     ap.add_argument("--timeout", type=int, default=900)
-    ap.add_argument("--prompt", default="calibrated", choices=["brief", "examples", "calibrated"],
+    ap.add_argument("--prompt", default="calibrated", choices=["brief", "examples", "calibrated", "calibrated2", "calibrated3", "calibrated4", "calibrated5"],
                     help="'brief' = one-line category definitions; "
                          "'examples' = each definition carries a minimal code example")
+    ap.add_argument("--slicer", default="slice", help="slicer module to use with --slice")
     ap.add_argument("--slice", action="store_true",
                     help="run slice.py's static pre-filter over each contract's source "
                          "before prompting, and tell the model how to read the blocks")
@@ -342,7 +437,7 @@ def main():
     samples = data["samples"]
 
     if args.slice:
-        import slice as slicer
+        slicer = __import__(args.slicer)
         pre = post = 0
         for smp in samples:
             pre += len(smp["source"])

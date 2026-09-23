@@ -1,0 +1,971 @@
+{
+  "summary": {
+    "model": "opus",
+    "effort": "high",
+    "prompt_variant": "calibrated4",
+    "sliced": false,
+    "contracts_evaluated": 15,
+    "contracts_failed": 0,
+    "exact_match_all_8": 5,
+    "label_agreement": 0.8833,
+    "hamming_loss": 0.1167,
+    "per_category": {
+      "Reentrancy": {
+        "tp": 13,
+        "tn": 1,
+        "fp": 1,
+        "fn": 0,
+        "dive_positives": 13,
+        "llm_positives": 14,
+        "agreement": 0.9333,
+        "precision_vs_dive": 0.9286,
+        "recall_vs_dive": 1.0,
+        "f1_vs_dive": 0.963,
+        "cohens_kappa": 0.6341
+      },
+      "Access Control": {
+        "tp": 15,
+        "tn": 0,
+        "fp": 0,
+        "fn": 0,
+        "dive_positives": 15,
+        "llm_positives": 15,
+        "agreement": 1.0,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 1.0,
+        "f1_vs_dive": 1.0,
+        "cohens_kappa": null
+      },
+      "Arithmetic": {
+        "tp": 9,
+        "tn": 1,
+        "fp": 2,
+        "fn": 3,
+        "dive_positives": 12,
+        "llm_positives": 11,
+        "agreement": 0.6667,
+        "precision_vs_dive": 0.8182,
+        "recall_vs_dive": 0.75,
+        "f1_vs_dive": 0.7826,
+        "cohens_kappa": 0.0741
+      },
+      "Unchecked Return Values": {
+        "tp": 6,
+        "tn": 9,
+        "fp": 0,
+        "fn": 0,
+        "dive_positives": 6,
+        "llm_positives": 6,
+        "agreement": 1.0,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 1.0,
+        "f1_vs_dive": 1.0,
+        "cohens_kappa": 1.0
+      },
+      "DoS": {
+        "tp": 6,
+        "tn": 8,
+        "fp": 0,
+        "fn": 1,
+        "dive_positives": 7,
+        "llm_positives": 6,
+        "agreement": 0.9333,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 0.8571,
+        "f1_vs_dive": 0.9231,
+        "cohens_kappa": 0.8649
+      },
+      "Bad Randomness": {
+        "tp": 7,
+        "tn": 7,
+        "fp": 1,
+        "fn": 0,
+        "dive_positives": 7,
+        "llm_positives": 8,
+        "agreement": 0.9333,
+        "precision_vs_dive": 0.875,
+        "recall_vs_dive": 1.0,
+        "f1_vs_dive": 0.9333,
+        "cohens_kappa": 0.8673
+      },
+      "Front Running": {
+        "tp": 1,
+        "tn": 11,
+        "fp": 1,
+        "fn": 2,
+        "dive_positives": 3,
+        "llm_positives": 2,
+        "agreement": 0.8,
+        "precision_vs_dive": 0.5,
+        "recall_vs_dive": 0.3333,
+        "f1_vs_dive": 0.4,
+        "cohens_kappa": 0.2857
+      },
+      "Time manipulation": {
+        "tp": 5,
+        "tn": 7,
+        "fp": 3,
+        "fn": 0,
+        "dive_positives": 5,
+        "llm_positives": 8,
+        "agreement": 0.8,
+        "precision_vs_dive": 0.625,
+        "recall_vs_dive": 1.0,
+        "f1_vs_dive": 0.7692,
+        "cohens_kappa": 0.6087
+      }
+    },
+    "timing": {
+      "run_wall_seconds": 299.05,
+      "sum_per_call_wall_seconds": 299.02,
+      "sum_cli_duration_ms": 268830,
+      "sum_api_duration_ms": 268061,
+      "mean_wall_seconds_per_contract": 19.93
+    },
+    "tokens": {
+      "input_tokens": 36,
+      "output_tokens": 21111,
+      "cache_creation_input_tokens": 96295,
+      "cache_read_input_tokens": 78190,
+      "total_tokens": 195632
+    },
+    "cost_usd": 1.53
+  },
+  "records": [
+    {
+      "contractID": "16156",
+      "source_chars": 8505,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 1,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.6,
+        "Access Control": 0.7,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.8,
+        "DoS": 0.55,
+        "Bad Randomness": 0.6,
+        "Front Running": 0.2,
+        "Time manipulation": 0.85
+      },
+      "reasons": {
+        "Reentrancy": "migrate() calls out to the externally-set newContractAddr contract and then emits the Migrate event / continues after control is handed over.",
+        "Access Control": "burn() and migrate() are public state-changing functions with no caller gate, and changeOwner/setMigrateContract let the owner redirect ownership and the migration target arbitrarily.",
+        "Arithmetic": "Raw unchecked arithmetic on solc 0.4.x: balances[_to] += _value, balances[msg.sender] -= _value in burn, _value * 10**decimals in formatDecimals, and tokens + tokenRaised comparisons.",
+        "DoS": "transferETH uses if (!ethFundDeposit.send(this.balance)) throw; a payee that rejects ETH permanently blocks the withdrawal path.",
+        "Bad Randomness": "block.number is the decision variable gating the crowdsale window in startFunding and the payable fallback."
+      },
+      "agreement": 7,
+      "wall_seconds": 25.77,
+      "cli_duration_ms": 23792,
+      "api_duration_ms": 23726,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1549,
+        "cache_creation_input_tokens": 7722,
+        "cache_read_input_tokens": 8763,
+        "total_tokens": 18038
+      },
+      "cost_usd": 0.1203465,
+      "num_turns": 3,
+      "session_id": "daf43615-0d52-49df-9ef1-fbf088dcdf60"
+    },
+    {
+      "contractID": "13910",
+      "source_chars": 10086,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.85,
+        "Access Control": 0.6,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.7,
+        "DoS": 0.75,
+        "Bad Randomness": 0.45,
+        "Front Running": 0.35,
+        "Time manipulation": 0.88
+      },
+      "reasons": {
+        "Reentrancy": "buy() makes external calls to NFTToken/DTT and oldOwner.transfer, then writes auction state and emits Bought/Sold events after the calls, with no reentrancy guard.",
+        "Access Control": "setAddresses/ChangeOwner set critical addresses with no zero-address validation, and the abstract DataBase/NFTToken mutating functions are declared without authorization gates.",
+        "Arithmetic": "solc 0.4.19 without SafeMath: totalModerators += 1/-= 1, totalAuction -= counter, price + increaseRate, gene multiplications and division-before-multiplication in the referral reward can overflow or truncate.",
+        "DoS": "quicksort_core contains unbounded while(true)/while loops and burnAuction loops over the entire auctions array, allowing gas exhaustion; buy() also push-pays oldOwner via transfer.",
+        "Bad Randomness": "randMod derives a pseudo-random value from keccak256(now, msg.sender, randNonce), all miner-influenceable/predictable inputs.",
+        "Time manipulation": "Auction eligibility and expiry depend on now (endTime > now, endTime + now, endTime < now - 259200), so a miner shift changes who can buy or burn."
+      },
+      "agreement": 8,
+      "wall_seconds": 20.63,
+      "cli_duration_ms": 18610,
+      "api_duration_ms": 18561,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1414,
+        "cache_creation_input_tokens": 4802,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 9922
+      },
+      "cost_usd": 0.085232,
+      "num_turns": 2,
+      "session_id": "ab22f614-b714-43c1-958f-8f037392f1bc"
+    },
+    {
+      "contractID": "18668",
+      "source_chars": 18002,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.8,
+        "Access Control": 0.68,
+        "Arithmetic": 0.3,
+        "Unchecked Return Values": 0.88,
+        "DoS": 0.25,
+        "Bad Randomness": 0.5,
+        "Front Running": 0.18,
+        "Time manipulation": 0.4
+      },
+      "reasons": {
+        "Reentrancy": "_swapTaxAndLiquify and _transferFrom perform external router calls (swapExactTokensForETHSupportingFeeOnTransferTokens, addLiquidityETH) and ETH transfers, then continue to write state (_swapLimit -= ..., _balances updates) and emit Transfer after the call; _openTrading also calls _primaryLP.call(sync()) before setting _isLP.",
+        "Access Control": "transferOwnership sets a new owner with no zero-address validation, and the owner retains broad privileged paths (setFees, updateWallets, manualTaxSwapAndSend, setLimits) that can move contract funds.",
+        "Unchecked Return Values": "_openTrading uses a raw low-level call: _primaryLP.call(abi.encodeWithSignature(\"sync()\")).",
+        "Bad Randomness": "block.number is a decision variable for the anti-MEV window, anti-snipe tax tiers and _antiMevBlock computation, which miners/validators can influence."
+      },
+      "agreement": 7,
+      "wall_seconds": 27.25,
+      "cli_duration_ms": 25146,
+      "api_duration_ms": 25104,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 2101,
+        "cache_creation_input_tokens": 7994,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 13801
+      },
+      "cost_usd": 0.134327,
+      "num_turns": 2,
+      "session_id": "9eb258fb-9103-478a-9b40-35709533eca2"
+    },
+    {
+      "contractID": "12919",
+      "source_chars": 23221,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 1,
+        "Bad Randomness": 1,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.9,
+        "Access Control": 0.55,
+        "Arithmetic": 0.6,
+        "Unchecked Return Values": 0.93,
+        "DoS": 0.6,
+        "Bad Randomness": 0.65,
+        "Front Running": 0.6,
+        "Time manipulation": 0.9
+      },
+      "reasons": {
+        "Reentrancy": "transferAndCall/transferFromAndCall/increaseApprovalAndCall perform `_to.call.value(msg.value)(_data)` into an arbitrary address with state changes and returns/events around it, handing control to untrusted code.",
+        "Access Control": "Public payable *AndCall functions let any caller trigger an arbitrary external call with value from the token contract, and the fallback/reclaim paths lack fine-grained checks.",
+        "Arithmetic": "solc 0.4.x with unchecked uint128 truncation casts (uint128(block.number), uint128(_value)) and raw arithmetic like (max+min+1)/2 and checkpoints.length-1 outside SafeMath.",
+        "Unchecked Return Values": "Contract contains raw low-level `.call.value(...)()` constructs, plus assert-wrapped send/transfer of ERC20 results.",
+        "DoS": "getValueAt contains an unbounded `while (max > min)` binary-search loop over growable checkpoint arrays.",
+        "Bad Randomness": "block.number is used as a decision/stored value (checkpoint fromBlock, transfer eligibility require(parentSnapShotBlock < block.number)).",
+        "Front Running": "Classic ERC20 approve allowance race: approve sets allowance directly, letting a spender front-run the change."
+      },
+      "agreement": 6,
+      "wall_seconds": 16.99,
+      "cli_duration_ms": 15131,
+      "api_duration_ms": 15074,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1223,
+        "cache_creation_input_tokens": 9531,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 14460
+      },
+      "cost_usd": 0.127747,
+      "num_turns": 2,
+      "session_id": "95851ada-fa88-477a-bffb-5ab21b152380"
+    },
+    {
+      "contractID": "17956",
+      "source_chars": 22014,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.83,
+        "Access Control": 0.72,
+        "Arithmetic": 0.3,
+        "Unchecked Return Values": 0.93,
+        "DoS": 0.5,
+        "Bad Randomness": 0.03,
+        "Front Running": 0.22,
+        "Time manipulation": 0.6
+      },
+      "reasons": {
+        "Reentrancy": "swapBack() performs an external router swap and raw .call{value:} transfers to three fee receivers, after which balances are updated and Transfer events emitted in _transferFrom, with no reentrancy lock on the transfer path.",
+        "Access Control": "setFeeReceivers and setSwapBackSettings let the owner set arbitrary/zero addresses and thresholds with no validation, and privileged control over fees/limits is centralized with no zero-address checks.",
+        "Unchecked Return Values": "Contract uses raw low-level .call{value: ...}(\"\") in sendPayable, withdrawCollectedTax, and the Address library.",
+        "DoS": "sendPayable pushes ETH to three externally-settable receivers with a require on success and a 30000 gas stipend; a single rejecting receiver reverts swapBack and thus blocks all token transfers that trigger it.",
+        "Time manipulation": "block.timestamp is passed as the swap deadline and gates the swapBack payout path."
+      },
+      "agreement": 6,
+      "wall_seconds": 17.14,
+      "cli_duration_ms": 15169,
+      "api_duration_ms": 15118,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1222,
+        "cache_creation_input_tokens": 9149,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 14077
+      },
+      "cost_usd": 0.12390199999999998,
+      "num_turns": 2,
+      "session_id": "60962eb5-f8c0-4f3a-b70b-714aac3d659b"
+    },
+    {
+      "contractID": "7701",
+      "source_chars": 12658,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.8,
+        "Access Control": 0.93,
+        "Arithmetic": 0.5,
+        "Unchecked Return Values": 0.85,
+        "DoS": 0.4,
+        "Bad Randomness": 0.03,
+        "Front Running": 0.3,
+        "Time manipulation": 0.55
+      },
+      "reasons": {
+        "Reentrancy": "swapBack() performs external router swap/addLiquidity and a raw ETH .call to marketingFeeReceiver, with further state reads/writes and an AutoLiquify event emitted after the external calls; called from within _transferFrom before balances settle.",
+        "Access Control": "clearStuckBalance() and Lifttax() are external with no authorization gate (anyone can drain contract ETH to the fee receiver or zero out fees), and setFeeReceivers has no zero-address check.",
+        "Arithmetic": "Unguarded raw arithmetic outside SafeMath with divide-before-multiply truncation (swapThreshold = _totalSupply / 1000 * 5, amountETH.mul(...).div(...).div(2), _totalSupply * amountPercent / 100).",
+        "Unchecked Return Values": "Contract contains a raw low-level call: payable(marketingFeeReceiver).call{value: amountETHMarketing, gas: 30000}(\"\").",
+        "Time manipulation": "block.timestamp is passed as the swap/addLiquidity deadline governing execution of the fee-swap path."
+      },
+      "agreement": 6,
+      "wall_seconds": 22.74,
+      "cli_duration_ms": 20812,
+      "api_duration_ms": 20772,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1705,
+        "cache_creation_input_tokens": 5430,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 10841
+      },
+      "cost_usd": 0.098787,
+      "num_turns": 2,
+      "session_id": "642136d1-8ea4-42a5-99a3-5d1429132ccb"
+    },
+    {
+      "contractID": "6067",
+      "source_chars": 1647,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.5,
+        "Access Control": 0.6,
+        "Arithmetic": 0.2,
+        "Unchecked Return Values": 0.9,
+        "DoS": 0.3,
+        "Bad Randomness": 0.65,
+        "Front Running": 0.07,
+        "Time manipulation": 0.15000000000000002
+      },
+      "reasons": {
+        "Reentrancy": "fundRaising sends ETH to the externally-controlled beneficiary address and then continues executing (further balance check and msg.sender.transfer) after that external value transfer.",
+        "Access Control": "beneficiary is set only in the constructor with no zero-address validation and there is no owner/authorization gate on any state-changing path, including the public fundRaising that moves all raised funds.",
+        "Bad Randomness": "block.number is used as the decision variable in the inProgress modifier to gate the sale window, a miner-influenceable block property driving contract behaviour."
+      },
+      "agreement": 7,
+      "wall_seconds": 17.13,
+      "cli_duration_ms": 15249,
+      "api_duration_ms": 15210,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1061,
+        "cache_creation_input_tokens": 1301,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 6068
+      },
+      "cost_usd": 0.041397,
+      "num_turns": 2,
+      "session_id": "20ba8067-6823-4fd2-b3ca-c9fac6d81db6"
+    },
+    {
+      "contractID": "4704",
+      "source_chars": 10921,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.6,
+        "Access Control": 0.75,
+        "Arithmetic": 0.85,
+        "Unchecked Return Values": 0.85,
+        "DoS": 0.85,
+        "Bad Randomness": 0.9,
+        "Front Running": 0.9,
+        "Time manipulation": 0.85
+      },
+      "reasons": {
+        "Reentrancy": "Train() makes external calls into the angel/pet data contracts (setPetAuras, setPetLastTrainingTime) and then emits EventSuccessfulTraining afterwards, with no reentrancy guard.",
+        "Access Control": "Unprotected/weak authorization surface: selfdestruct in kill(), owner setters for contract addresses with no zero-address check, and interface functions like ownerAngelTransfer/ownerPetTransfer/setPetName declared public with no caller check.",
+        "Arithmetic": "solc 0.4.17 with unchecked arithmetic on user-influenced values: petBaseAura + 1/+2 in findAuras, now + 86400, totalSeraphims += 1 / -= 1, and the modulo/addition in getRandomNumber, none using SafeMath.",
+        "Bad Randomness": "getRandomNumber derives its output from block.blockhash(block.number-1) plus a caller-supplied address, both miner-observable or influenceable.",
+        "Time manipulation": "Training eligibility is gated on now < pet1.lastTrainingTime + 86400, a timestamp-driven cooldown a miner can nudge."
+      },
+      "agreement": 8,
+      "wall_seconds": 23.31,
+      "cli_duration_ms": 21363,
+      "api_duration_ms": 21311,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1756,
+        "cache_creation_input_tokens": 6716,
+        "cache_read_input_tokens": 12939,
+        "total_tokens": 21415
+      },
+      "cost_usd": 0.1175495,
+      "num_turns": 3,
+      "session_id": "8152567a-b118-4b21-9e9e-dae184f1e224"
+    },
+    {
+      "contractID": "7383",
+      "source_chars": 11436,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.9,
+        "Access Control": 0.75,
+        "Arithmetic": 0.7,
+        "Unchecked Return Values": 0.9,
+        "DoS": 0.3,
+        "Bad Randomness": 0.02,
+        "Front Running": 0.05,
+        "Time manipulation": 0.02
+      },
+      "reasons": {
+        "Reentrancy": "executeTransaction calls tx.destination.call.value(tx.value)(tx.data) and then writes tx.executed = false and emits events after control returns to untrusted code.",
+        "Access Control": "submitTransaction and executeTransaction are public with no caller authorization gate, and the wallet can execute arbitrary calls including its own admin functions.",
+        "Arithmetic": "solc 0.4 with no SafeMath: owners.length -= 1, owners.length + 1, transactionCount += 1 and `to - from` on caller-supplied indices can underflow/overflow.",
+        "Unchecked Return Values": "Uses a raw low-level .call.value()() to an arbitrary destination address."
+      },
+      "agreement": 7,
+      "wall_seconds": 18.79,
+      "cli_duration_ms": 16851,
+      "api_duration_ms": 16778,
+      "usage": {
+        "input_tokens": 4,
+        "output_tokens": 1434,
+        "cache_creation_input_tokens": 5622,
+        "cache_read_input_tokens": 12040,
+        "total_tokens": 19100
+      },
+      "cost_usd": 0.09811,
+      "num_turns": 3,
+      "session_id": "8eb41306-0416-4b2b-9962-191fd9b6c7e0"
+    },
+    {
+      "contractID": "10031",
+      "source_chars": 13291,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.9,
+        "Access Control": 0.75,
+        "Arithmetic": 0.85,
+        "Unchecked Return Values": 0.75,
+        "DoS": 0.4,
+        "Bad Randomness": 0.92,
+        "Front Running": 0.3,
+        "Time manipulation": 0.75
+      },
+      "reasons": {
+        "Reentrancy": "updateAccount modifier transfers ETH to the account before writing lastDividendPoints, and shootSemiRandom/shootTarget make external calls (P3D withdraw, SPASM disburse, transfer) before further state writes and event emissions.",
+        "Access Control": "Payoutnextrefund, disburse, fetchdivs and P3DDivstocontract are public state-changing/fund-moving functions with no authorization gate, and transferOwnership lacks a zero-address check.",
+        "Arithmetic": "solc 0.4.25 with raw ++/--/+=/- operations (balances[killed]--, Refundpot += value - 100 finney, lastMove + blocks) bypassing SafeMath, plus div-before-mul truncation in dividend math.",
+        "Bad Randomness": "shootSemiRandom derives the victim index from blockhash and block.number, values a miner can influence, and block.number also gates shooting eligibility."
+      },
+      "agreement": 8,
+      "wall_seconds": 18.32,
+      "cli_duration_ms": 16355,
+      "api_duration_ms": 16313,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1375,
+        "cache_creation_input_tokens": 5930,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 11011
+      },
+      "cost_usd": 0.09553700000000001,
+      "num_turns": 2,
+      "session_id": "07785d77-2b80-42e8-b0be-c776fa0ac612"
+    },
+    {
+      "contractID": "11108",
+      "source_chars": 8721,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.6,
+        "Access Control": 0.68,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.85,
+        "DoS": 0.5,
+        "Bad Randomness": 0.92,
+        "Front Running": 0.8,
+        "Time manipulation": 0.9
+      },
+      "reasons": {
+        "Access Control": "Public `nowInSeconds()` and the payable fallback/`getTokens()` mutate state with no authorization gate, and `withdraw()` drains the whole ether balance to whichever owner calls it.",
+        "Arithmetic": "solc 0.4.x with many raw operations bypassing SafeMath: `times[_to] += 1`, `amounts[i] * _Rate`, `_freeday * 1 days`, `locknum +=`, `balances[_owner] + value`, and `allowed[_from][msg.sender] - lockOf(msg.sender)` / `balances[msg.sender] - lockOf(...)` which can underflow.",
+        "DoS": "`lockOf()` loops over an unbounded, user-growable `times[_owner]` counter with a `uint8` index, so a sufficiently large number of distributions makes every transfer/transferFrom run out of gas or loop forever.",
+        "Time manipulation": "`now` is stored in `dorptime` and compared against `freeday` lock windows in `lockOf()`, directly deciding how many tokens are spendable."
+      },
+      "agreement": 7,
+      "wall_seconds": 24.66,
+      "cli_duration_ms": 21626,
+      "api_duration_ms": 21578,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1647,
+        "cache_creation_input_tokens": 4077,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 9430
+      },
+      "cost_usd": 0.083807,
+      "num_turns": 2,
+      "session_id": "3a63e952-2677-403b-857a-d4223536b735"
+    },
+    {
+      "contractID": "16457",
+      "source_chars": 13580,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.85,
+        "Access Control": 0.6,
+        "Arithmetic": 0.3,
+        "Unchecked Return Values": 0.15,
+        "DoS": 0.25,
+        "Bad Randomness": 0.03,
+        "Front Running": 0.45,
+        "Time manipulation": 0.75
+      },
+      "reasons": {
+        "Reentrancy": "_transfer calls swapTokensForEth (external router call) and _feeAddrWallet.transfer before completing _tokenTransfer state updates and Transfer event emission, and swapTokensForEth does external calls followed by state writes.",
+        "Access Control": "manualswap/manualsend are external state-changing/fund-moving functions gated only by an equality check on a hardcoded address, owner setters lack zero-address checks, and openTrading/setBots give the owner unchecked privileged control (no transferOwnership, renounce leaves privileged fee wallet).",
+        "Front Running": "ERC20 approve allowance race plus swapExactTokensForETHSupportingFeeOnTransferTokens called with amountOutMin = 0, permitting sandwich attacks.",
+        "Time manipulation": "block.timestamp gates the cooldown eligibility window (cooldown[to] < block.timestamp, +30 seconds) and is used as swap/liquidity deadlines."
+      },
+      "agreement": 6,
+      "wall_seconds": 17.43,
+      "cli_duration_ms": 15538,
+      "api_duration_ms": 15478,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1223,
+        "cache_creation_input_tokens": 6063,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 10992
+      },
+      "cost_usd": 0.093067,
+      "num_turns": 2,
+      "session_id": "ec512eaa-8aca-4369-950a-be12a1f3b060"
+    },
+    {
+      "contractID": "17113",
+      "source_chars": 23342,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.83,
+        "Access Control": 0.7,
+        "Arithmetic": 0.6,
+        "Unchecked Return Values": 0.9,
+        "DoS": 0.35,
+        "Bad Randomness": 0.03,
+        "Front Running": 0.25,
+        "Time manipulation": 0.75
+      },
+      "reasons": {
+        "Reentrancy": "_swapAndTransfer performs Address.sendValue and router swaps to external addresses, then continues with further calls and sets _swapping = false / emits events after control has left the contract; claimETHOverflow also emits after a raw call.",
+        "Access Control": "setUniswapRouter accepts an arbitrary address with no zero/contract validation, and the Address library exposes functionDelegateCall to an arbitrary target; owner-controlled fee and wallet setters give unilateral control.",
+        "Arithmetic": "Multiple unchecked { } blocks in ERC20 on user-influenced amounts, plus fee math (amount * _totalFee) / 100 and division by _totalFeePrior which can be zero/truncate.",
+        "Unchecked Return Values": "Raw low-level calls present: recipient.call{value:...}(\"\") in Address.sendValue/functionCallWithValue, target.delegatecall, and claimETHOverflow's call whose failure is silently ignored (only an if(success)).",
+        "Time manipulation": "block.timestamp is passed as the swap deadline in _swapTokensForETH and _swapETHForCustomToken, making block time a decision variable for execution."
+      },
+      "agreement": 7,
+      "wall_seconds": 18.3,
+      "cli_duration_ms": 16448,
+      "api_duration_ms": 16404,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1199,
+        "cache_creation_input_tokens": 10001,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 14906
+      },
+      "cost_usd": 0.131847,
+      "num_turns": 2,
+      "session_id": "00975867-c06c-4342-b510-11d6a90acd30"
+    },
+    {
+      "contractID": "20827",
+      "source_chars": 16405,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.75,
+        "Access Control": 0.95,
+        "Arithmetic": 0.9,
+        "Unchecked Return Values": 0.75,
+        "DoS": 0.85,
+        "Bad Randomness": 0.3,
+        "Front Running": 0.15,
+        "Time manipulation": 0.9
+      },
+      "reasons": {
+        "Reentrancy": "batchReturnEthIfFailed sends ETH inside a loop with state updates (nextContributorToClaim) and event emission after the external send; createTokens also sends before finishing bookkeeping.",
+        "Access Control": "transferToContributor() and createTokens(address) are public with no authorization, letting anyone move tokens out of the owner's balance / mint tokens to arbitrary addresses.",
+        "Arithmetic": "Crowdsale math (ethRaised += contributionAmount, maxCap - ethRaised, tokens * 60 / 100, contributionAmount sums) uses raw operators on solc 0.4.x without SafeMath, and divides percentages that truncate.",
+        "DoS": "batchReturnEthIfFailed loops performing .send() per contributor; a failing/expensive payee or large list blocks or stalls the refund process.",
+        "Time manipulation": "Crowdsale state transitions and refund eligibility are gated on now >= BEGIN_TIME / now >= END_TIME, which miners can nudge."
+      },
+      "agreement": 8,
+      "wall_seconds": 15.77,
+      "cli_duration_ms": 13844,
+      "api_duration_ms": 13784,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1104,
+        "cache_creation_input_tokens": 7238,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 12048
+      },
+      "cost_usd": 0.101842,
+      "num_turns": 2,
+      "session_id": "0ece4625-2609-4ba2-b03e-ccc22090180c"
+    },
+    {
+      "contractID": "6875",
+      "source_chars": 10530,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.62,
+        "Access Control": 0.72,
+        "Arithmetic": 0.82,
+        "Unchecked Return Values": 0.09,
+        "DoS": 0.2,
+        "Bad Randomness": 0.6,
+        "Front Running": 0.22,
+        "Time manipulation": 0.2
+      },
+      "reasons": {
+        "Reentrancy": "buy() sends ether via founder.transfer(msg.value) and then emits Transfer/Buy events after the external call, leaving state/bookkeeping actions after control transfer.",
+        "Access Control": "updateTokenSaleState() is public and mutates the sale state machine with no authorization gate; constructor-set owner/founder have no zero-address checks or setters.",
+        "Arithmetic": "pct() performs raw `numerator * 10 ** (precision+1)` and price()/lockup checks do unchecked `endBlock - block.number`, `endBlock + transferLockup`, `reserveWaveLockup * reserveWave` on solc 0.4 outside SafeMath.",
+        "Bad Randomness": "block.number directly drives price(), sale state transitions, transfer lockups and reserve-release eligibility."
+      },
+      "agreement": 8,
+      "wall_seconds": 14.81,
+      "cli_duration_ms": 12896,
+      "api_duration_ms": 12850,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1098,
+        "cache_creation_input_tokens": 4719,
+        "cache_read_input_tokens": 3704,
+        "total_tokens": 9523
+      },
+      "cost_usd": 0.076502,
+      "num_turns": 2,
+      "session_id": "16246f10-99aa-4f55-b33b-3878e3742cf7"
+    }
+  ]
+}

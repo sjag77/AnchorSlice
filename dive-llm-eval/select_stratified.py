@@ -40,6 +40,8 @@ def main():
     ap.add_argument("--min-bytes", type=int, default=1200, help="skip empty stub contracts")
     ap.add_argument("--max-bytes", type=int, default=30000, help="cap token cost per contract")
     ap.add_argument("--out", default="selected_ids_50.txt")
+    ap.add_argument("--exclude", nargs="*", default=[],
+                    help="files of contractIDs that must not be selected (e.g. earlier samples)")
     args = ap.parse_args()
 
     size = {}
@@ -47,11 +49,12 @@ def main():
         cid, sz = line.split()
         size[cid] = int(sz)
 
+    excluded = {l.strip() for f in args.exclude for l in open(f) if l.strip()}
     pool = {}
     for r in csv.DictReader(open(args.labels)):
         cid = r["contractID"].strip()
         sz = size.get(cid, 1 << 30)
-        if args.min_bytes <= sz <= args.max_bytes:
+        if args.min_bytes <= sz <= args.max_bytes and cid not in excluded:
             pool[cid] = {c: int(r[c]) for c in DASP}
 
     rng = random.Random(args.seed)

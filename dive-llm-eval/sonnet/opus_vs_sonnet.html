@@ -1,0 +1,110 @@
+<title>Opus vs Sonnet on AnchorSlice</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#f6f7f8;--fg:#1c2329;--mute:#5d6973;--line:#d9dee2;--card:#ffffff;--opus:#2f6f8f;--son:#b8742a;--good:#2e7d4f;--bad:#b3413a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15191c;--fg:#e4e8eb;--mute:#95a1ab;--line:#2c3439;--card:#1c2226;--opus:#6fb1d2;--son:#e0a35a;--good:#6cc493;--bad:#e2837b}}
+:root[data-theme="dark"]{--bg:#15191c;--fg:#e4e8eb;--mute:#95a1ab;--line:#2c3439;--card:#1c2226;--opus:#6fb1d2;--son:#e0a35a;--good:#6cc493;--bad:#e2837b}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 "IBM Plex Sans",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:32px 60px}
+h1{font-size:28px;margin:0 0 6px;text-wrap:balance}h2{font-size:18px;margin:40px 0 10px;text-wrap:balance}
+p{max-width:68ch}.sub{color:var(--mute);margin:0}
+.o{color:var(--opus);font-weight:600}.s{color:var(--son);font-weight:600}
+.find{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:22px}
+.find div{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.find b{display:block;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:14px;background:var(--card)}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}th{font-weight:600;font-size:13px;color:var(--mute)}
+.up{color:var(--good)}.dn{color:var(--bad)}code{font:13px "IBM Plex Mono",monospace}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin:6px 0}
+.sw{display:inline-block;width:12px;height:12px;vertical-align:-1px;margin-right:6px;border-radius:2px}
+svg text{fill:var(--fg);font:12px "IBM Plex Sans",sans-serif}svg .m{fill:var(--mute)}
+.note{font-size:13px;color:var(--mute)}
+</style>
+<main>
+<h1>Opus 5 vs Sonnet 5 on the AnchorSlice benchmark</h1>
+<p class="sub">Same 50 DIVE contracts, same calibrated prompt and JSON schema, one call per contract. Each model was run on the complete source (full) and on the AnchorSlice output (sliced). Scores are against the DIVE labels (400 label cells, 119 positives).</p>
+
+<p><b>Update:</b> Opus was rerun on 20 new contracts with a fresh cache and merged with the 50 (70 contracts). With clean token counts, slicing saves about 23% of tokens and cost. Over the 70 contracts, detection is unchanged (McNemar p = 1.00). Details are in the first section below.</p>
+<div class="find">
+<div><b>Detection</b>Opus is ahead. <span class="o">Opus sliced</span> is the best run (F1 0.500, recall 0.630). <span class="s">Sonnet</span> reaches F1 0.38 with or without slicing.</div>
+<div><b>Slicing helps Opus, not Sonnet</b>Slicing raised Opus's F1 by 7.3 points but left Sonnet flat (−0.9). Neither change is statistically significant (p = 0.76 and 0.74).</div>
+<div><b>Cost</b>Sonnet costs about 37% less ($2.09–2.15 vs $3.36–3.41) but is slower, because it writes about twice as many output tokens.</div>
+<div><b>Token savings are smaller than reported</b>Sonnet's token total fell only 7.6% with slicing, against 56.6% for Opus. The Opus figure is inflated by cache reads; see below.</div>
+</div>
+
+<h2>Update: Opus on 20 new contracts, then merged to 70</h2>
+<p>20 new DIVE contracts (seed 20260922, none shared with the earlier 55) were selected with at least 2 positive and 2 negative contracts per category. Before any model call, the slicer kept evidence for <b>43/43</b> labelled vulnerabilities (every category 1.00) at 49.0% of source characters. The two Opus arms were then run one after the other with a fresh cache. Every call read the same 3,324 cached prompt tokens, so these token counts are clean.</p>
+<div class="scroll"><table>
+<tr><th>Opus</th><th>Contracts</th><th>Precision</th><th>Recall</th><th>F1</th><th>κ</th><th>FN</th><th>Total tokens</th><th>Cost</th><th>Wall clock</th></tr>
+<tr><td class="o">Full, 20 new</td><td>20</td><td>0.392</td><td>0.721</td><td>0.508</td><td>0.246</td><td>12</td><td>256,805</td><td>$1.88</td><td>337 s</td></tr>
+<tr><td class="o">Sliced, 20 new</td><td>20</td><td>0.377</td><td>0.674</td><td>0.483</td><td>0.211</td><td>14</td><td>195,842 <span class="up">(−23.7%)</span></td><td>$1.45 <span class="up">(−22.8%)</span></td><td>372 s</td></tr>
+<tr><td class="o">Full, merged</td><td>70</td><td>0.388</td><td>0.543</td><td>0.452</td><td>0.173</td><td>74</td><td>1,170,763</td><td>$5.29</td><td>1,357 s</td></tr>
+<tr><td class="o">Sliced, merged</td><td>70</td><td>0.403</td><td>0.642</td><td>0.495</td><td>0.217</td><td>58</td><td>592,280 <span class="up">(−49.4%)</span></td><td>$4.82 <span class="up">(−9.0%)</span></td><td>1,190 s</td></tr>
+</table></div>
+<p><b>What the new contracts show.</b> On the 20 new contracts, slicing cost Opus 2 true positives (F1 −2.5 points), the opposite direction from the 50-contract sample. Over all 70 contracts, slicing still improves recall (+9.9 points) and F1 (+4.3), but the paired test is flat: 27 cells were correct only with full source and 28 only with slicing (McNemar p = 1.00). The honest claim is now <b>"slicing does not change detection quality"</b>, not "slicing improves it". In the merged set, access control (+8.6) and front running (+7.1) still gain and DoS still loses (−12.9).</p>
+<p><b>Token cost, measured cleanly.</b> On the new contracts, slicing saved <b>23.7% of tokens and 22.8% of cost</b>. This is the defensible figure. The merged −49.4% still includes the cache-inflated 50-contract full-source run, so it should not be quoted.</p>
+
+<h2>Detection effectiveness (50-contract sample)</h2>
+<div class="scroll"><table>
+<tr><th>Run</th><th>Agreement</th><th>Precision</th><th>Recall</th><th>F1</th><th>Cohen's κ</th><th>TP</th><th>FP</th><th>FN</th><th>Exact 8/8</th></tr>
+<tr><td class="o">Opus full</td><td>0.618</td><td>0.385</td><td>0.479</td><td>0.427</td><td>0.145</td><td>57</td><td>91</td><td>62</td><td>0</td></tr>
+<tr><td class="o">Opus sliced</td><td>0.625</td><td>0.414</td><td><b>0.630</b></td><td><b>0.500</b></td><td><b>0.220</b></td><td>75</td><td>106</td><td>44</td><td>2</td></tr>
+<tr><td class="s">Sonnet full</td><td>0.613</td><td>0.364</td><td>0.403</td><td>0.382</td><td>0.101</td><td>48</td><td>84</td><td>71</td><td>0</td></tr>
+<tr><td class="s">Sonnet sliced</td><td>0.605</td><td>0.353</td><td>0.395</td><td>0.373</td><td>0.086</td><td>47</td><td>86</td><td>72</td><td>1</td></tr>
+</table></div>
+
+<h2>Resources</h2>
+<div class="scroll"><table>
+<tr><th>Run</th><th>Total tokens</th><th>Per contract</th><th>Output</th><th>Cache write</th><th>Cache read</th><th>Wall clock</th><th>s / contract</th><th>Cost</th></tr>
+<tr><td class="o">Opus full</td><td>913,958</td><td>18,279</td><td>63,798</td><td>125,385</td><td>724,571</td><td>1,019.6 s</td><td>20.4</td><td>$3.41</td></tr>
+<tr><td class="o">Opus sliced</td><td>396,438</td><td>7,929</td><td>53,872</td><td>176,438</td><td>166,026</td><td>818.5 s</td><td>16.4</td><td>$3.36</td></tr>
+<tr><td class="s">Sonnet full</td><td>525,821</td><td>10,516</td><td>112,449</td><td>248,322</td><td>164,950</td><td>1,260.0 s</td><td>25.2</td><td>$2.15</td></tr>
+<tr><td class="s">Sonnet sliced</td><td>485,989</td><td>9,720</td><td>129,236</td><td>191,703</td><td>164,950</td><td>1,414.7 s</td><td>28.3</td><td>$2.09</td></tr>
+</table></div>
+<p><b>Why the token savings differ.</b> Every <span class="s">Sonnet</span> call used exactly 2 turns and read the same 3,299 cached prompt tokens, so its token counts are clean. On the part that actually depends on the contract (cache writes), slicing cut Sonnet's input by <b>22.8%</b> (248,322 → 191,703), but output grew 15%, leaving a total saving of 7.6%. <span class="o">Opus full</span> read a median of 13,916 cached tokens per contract, and some calls took 3 turns. That suggests the contracts were already cached from an earlier run and some calls retried. So most of the paper's 56.6% saving comes from cache reads rather than from fewer contract tokens. Before submitting, rerun the Opus arms back-to-back from a cold cache, or report input tokens excluding cache reads.</p>
+
+<h2>Per-category F1</h2>
+<div class="legend"><span><i class="sw" style="background:var(--opus);opacity:.45"></i>Opus full</span><span><i class="sw" style="background:var(--opus)"></i>Opus sliced</span><span><i class="sw" style="background:var(--son);opacity:.45"></i>Sonnet full</span><span><i class="sw" style="background:var(--son)"></i>Sonnet sliced</span></div>
+<div class="scroll"><svg id="chart" width="940" height="420" viewBox="0 0 940 420" role="img" aria-label="Per-category F1 for four runs"></svg></div>
+<script>
+const cats=["Reentrancy","Access Control","Arithmetic","Unchecked Return","DoS","Bad Randomness","Front Running","Time manipulation"];
+const f1=[[.8,.86,.59,.63],[.27,.54,.33,.22],[.45,.49,.4,.43],[.12,.29,.11,.1],[.4,.3,.22,.11],[.75,.67,.75,.75],[.12,.19,.15,.17],[.63,.63,.7,.68]];
+const col=["var(--opus)","var(--opus)","var(--son)","var(--son)"],op=[.45,1,.45,1];
+const s=document.getElementById('chart'),L=150,W=740,rowH=48,ns='http://www.w3.org/2000/svg';
+const el=(t,a,txt)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;s.appendChild(e);return e};
+for(let g=0;g<=5;g++){const x=L+W*g/5;el('line',{x1:x,x2:x,y1:10,y2:10+rowH*8,stroke:'var(--line)'});el('text',{x,y:rowH*8+28,'text-anchor':'middle',class:'m'},(g/5).toFixed(1))}
+cats.forEach((c,i)=>{const y0=14+i*rowH;el('text',{x:L-10,y:y0+rowH/2-2,'text-anchor':'end'},c);
+ f1[i].forEach((v,j)=>{const y=y0+j*10;el('rect',{x:L,y,width:W*v,height:8,fill:col[j],'fill-opacity':op[j]});el('text',{x:L+W*v+5,y:y+8,class:'m','font-size':'10'},v.toFixed(2))})});
+el('text',{x:L+W/2,y:rowH*8+46,'text-anchor':'middle',class:'m'},'F1 against DIVE labels');
+</script>
+
+<h2>Predicted positives per category</h2>
+<div class="scroll"><table>
+<tr><th>Category</th><th>DIVE positives</th><th class="o">Opus full</th><th class="o">Opus sliced</th><th class="s">Sonnet full</th><th class="s">Sonnet sliced</th></tr>
+<tr><td>Reentrancy</td><td>22</td><td>23</td><td>27</td><td>12</td><td>16</td></tr>
+<tr><td>Access Control</td><td>39</td><td>6</td><td class="up">17</td><td>9</td><td class="dn">6</td></tr>
+<tr><td>Arithmetic</td><td>23</td><td>17</td><td>22</td><td>12</td><td>14</td></tr>
+<tr><td>Unchecked Return Values</td><td>5</td><td>12</td><td>16</td><td>14</td><td>15</td></tr>
+<tr><td>DoS</td><td>7</td><td>13</td><td class="dn">20</td><td>11</td><td>11</td></tr>
+<tr><td>Bad Randomness</td><td>5</td><td>3</td><td>4</td><td>3</td><td>3</td></tr>
+<tr><td>Front Running</td><td>5</td><td>46</td><td>47</td><td>47</td><td>43</td></tr>
+<tr><td>Time manipulation</td><td>13</td><td>28</td><td>28</td><td>24</td><td>25</td></tr>
+</table></div>
+<p>The main difference between the models is how conservative they are. Sonnet flags far less reentrancy (12 vs 23) and arithmetic (12 vs 17). The <code>MUTFN</code> access-control tag that lifted Opus from 6 to 17 positives had no such effect on Sonnet (9 → 6). Sonnet also ignored the over-broad DoS tag that misled Opus (11 → 11 vs 13 → 20). Both models over-call front running on almost every contract.</p>
+
+<h2>Paired significance (McNemar exact, 400 cells)</h2>
+<div class="scroll"><table>
+<tr><th>Comparison</th><th>Correct only in first</th><th>Correct only in second</th><th>p</th></tr>
+<tr><td>Opus full vs Opus sliced</td><td>20</td><td>23</td><td>0.761</td></tr>
+<tr><td>Sonnet full vs Sonnet sliced</td><td>19</td><td>16</td><td>0.736</td></tr>
+<tr><td>Opus full vs Sonnet full</td><td>20</td><td>18</td><td>0.871</td></tr>
+<tr><td>Opus sliced vs Sonnet sliced</td><td>32</td><td>24</td><td>0.350</td></tr>
+</table></div>
+<p>No difference reaches significance. The two models agree with each other on 90.5% of cells (full source), far more than either agrees with DIVE (about 61%). That echoes the earlier pilot: the models disagree with DIVE's labeling policy more than they disagree with each other.</p>
+
+<h2>What this means for the paper</h2>
+<p>1. Slicing never degraded detection significantly for either model, so the claim "input reduction does not harm detection" holds for both. 2. The improvement in effectiveness is specific to Opus and should not be generalised. 3. The token-saving figure needs a clean remeasurement before it goes into the paper: for Sonnet, slicing saves 22.8% of contract-dependent input and 7.6% overall.</p>
+<p class="note">Data: <code>results_50_calibrated.json</code>, <code>results_50_sliced.json</code>, <code>sonnet/results_50_sonnet_full.json</code>, <code>sonnet/results_50_sonnet_sliced.json</code>. Reproduce with <code>python3 sonnet/compare_models.py</code>.</p>
+</main>

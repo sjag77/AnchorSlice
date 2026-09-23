@@ -1,0 +1,133 @@
+<title>AnchorSlice Opus Results</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#f6f7f8;--fg:#1c2329;--mute:#5d6973;--line:#d9dee2;--card:#fff;--acc:#2f6f8f;--acc2:#b8742a;--good:#2e7d4f;--bad:#b3413a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15191c;--fg:#e4e8eb;--mute:#95a1ab;--line:#2c3439;--card:#1c2226;--acc:#6fb1d2;--acc2:#e0a35a;--good:#6cc493;--bad:#e2837b}}
+:root[data-theme="dark"]{--bg:#15191c;--fg:#e4e8eb;--mute:#95a1ab;--line:#2c3439;--card:#1c2226;--acc:#6fb1d2;--acc2:#e0a35a;--good:#6cc493;--bad:#e2837b}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 "IBM Plex Sans",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:32px 60px}
+h1{font-size:28px;margin:0 0 6px;text-wrap:balance}h2{font-size:19px;margin:40px 0 10px}h3{font-size:15px;margin:24px 0 6px;color:var(--mute);letter-spacing:.03em;text-transform:uppercase}
+p{max-width:72ch}.sub{color:var(--mute);margin:0}
+.find{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-top:22px}
+.find div{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.find b{display:block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}
+.find strong{font-size:23px;color:var(--acc);display:block;line-height:1.25}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:14px;background:var(--card)}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}th{font-weight:600;font-size:13px;color:var(--mute)}
+tr.win td{background:color-mix(in srgb,var(--acc) 9%,transparent);font-weight:600}
+.up{color:var(--good)}.dn{color:var(--bad)}code{font:13px "IBM Plex Mono",monospace}
+.note{font-size:13px;color:var(--mute)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin:8px 0}
+.sw{display:inline-block;width:12px;height:12px;vertical-align:-1px;margin-right:6px;border-radius:2px}
+svg text{fill:var(--fg);font:12px "IBM Plex Sans",sans-serif}svg .m{fill:var(--mute)}
+blockquote{border-left:3px solid var(--acc);margin:16px 0;padding:2px 0 2px 14px;color:var(--fg);max-width:72ch}
+</style>
+<main>
+<h1>AnchorSlice: token efficiency and detection quality</h1>
+<p class="sub">Claude Opus 5 on 70 DIVE contracts (50-contract sample + 20 held-out contracts), 560 label cells, 162 labelled vulnerabilities. Three configurations: the original setup, the original slicer, and the current slicer with the calibrated prompt. Scored against the DIVE labels.</p>
+
+<div class="find">
+<div><b>Evidence retention</b><strong>162 / 162</strong>Every labelled vulnerability keeps a tagged block, 1.00 in all eight categories.</div>
+<div><b>Detection, all 70</b><strong>F1 0.452 → 0.722</strong>Agreement 0.620 → 0.816, κ 0.173 → 0.588 (McNemar p &lt; 0.0001).</div>
+<div><b>Tokens and cost</b><strong>−21.7%</strong>Measured on a clean pair with a cold cache; retention unchanged.</div>
+<div><b>Coverage</b><strong>8 / 8 categories</strong>On every contract. The best single analyzer in DIVE reaches 78% of cells.</div>
+</div>
+
+<h2>What changed between configurations</h2>
+<div class="scroll"><table>
+<tr><th>Configuration</th><th>Detector input</th><th>Slicer</th><th>Prompt</th></tr>
+<tr><td>A · baseline</td><td>complete source</td><td>—</td><td>original calibrated</td></tr>
+<tr><td>B · original AnchorSlice</td><td>slice</td><td><code>slice.py</code></td><td>original calibrated</td></tr>
+<tr class="win"><td>C · current AnchorSlice</td><td>slice</td><td><code>slice2.py</code>: DoS, Front Running and Unchecked anchors tightened</td><td><code>calibrated4</code>: per-category decision rules + corpus base rates</td></tr>
+</table></div>
+<p>The slicer changes cut how often a tag fires without losing evidence: DoS 61% → 45% of blocks, Front Running 59% → 23%, Unchecked Return Values 40% → 29%. The prompt changes state, per category, what the benchmark actually marks — for example that a checked <code>.call</code> still counts for Unchecked Return Values in this corpus, that a bare <code>require</code> is not DoS, and that a sale window gated on <code>block.number</code> is labelled Bad Randomness.</p>
+
+<h2>Detection across all 70 contracts</h2>
+<div class="scroll"><table>
+<tr><th>Configuration</th><th>Agreement</th><th>Precision</th><th>Recall</th><th>F1</th><th>Cohen's κ</th><th>TP</th><th>FP</th><th>FN</th><th>Perfect 8/8</th></tr>
+<tr><td>A · full source</td><td>0.620</td><td>0.388</td><td>0.543</td><td>0.452</td><td>0.173</td><td>88</td><td>139</td><td>74</td><td>0 / 70</td></tr>
+<tr><td>B · original slice</td><td>0.621</td><td>0.403</td><td>0.642</td><td>0.495</td><td>0.217</td><td>104</td><td>154</td><td>58</td><td>2 / 70</td></tr>
+<tr class="win"><td>C · current slice + prompt</td><td>0.816</td><td>0.641</td><td>0.827</td><td>0.722</td><td>0.588</td><td>134</td><td>75</td><td>28</td><td>12 / 70</td></tr>
+</table></div>
+<p>False negatives fall from 74 to 28 while false positives fall from 139 to 75, so this is not a threshold trade: both error types drop together. Paired McNemar over the 560 cells gives <b>p &lt; 0.0001</b> for C against A (46 cells correct only in A, 156 only in C) and for C against B (39 / 148). By comparison, A against B is exactly flat (27 / 28, p = 1.00), which is why slicing alone was never a detection story.</p>
+
+<h2>Does it generalise, or is it fitted?</h2>
+<p>The prompt rules were derived by inspecting failures on 15 contracts. The other 55 were never used for tuning, so they are the honest test.</p>
+<div class="scroll"><table>
+<tr><th>Configuration</th><th>15 tuning contracts · F1</th><th>15 tuning · agreement</th><th>55 untouched · F1</th><th>55 untouched · agreement</th></tr>
+<tr><td>A · full source</td><td>0.593</td><td>0.542</td><td>0.378</td><td>0.641</td></tr>
+<tr><td>B · original slice</td><td>0.689</td><td>0.617</td><td>0.390</td><td>0.623</td></tr>
+<tr class="win"><td>C · current</td><td>0.885</td><td>0.875</td><td><b>0.633</b></td><td><b>0.800</b></td></tr>
+</table></div>
+<p>On contracts that had no part in the tuning, F1 still rises from 0.378 to 0.633 and agreement from 0.641 to 0.800. The gain is smaller than on the tuning set, as expected, but it is most of the effect. A fully clean confirmation still needs fresh contracts drawn from the archive.</p>
+
+<h2>Per-category agreement</h2>
+<div class="legend"><span><i class="sw" style="background:var(--acc);opacity:.45"></i>A · full source, original prompt</span><span><i class="sw" style="background:var(--acc)"></i>C · current AnchorSlice</span></div>
+<div class="scroll"><svg width="940" height="330" viewBox="0 0 940 330" role="img" aria-label="Per-category agreement, configuration A versus C"></svg></div>
+<div class="scroll"><table>
+<tr><th>Category</th><th>DIVE positives</th><th>A · agreement</th><th>C · agreement</th><th>Change</th><th>A · FP/FN</th><th>C · FP/FN</th></tr>
+<tr><td>Unchecked Return Values</td><td>10</td><td>0.686</td><td><b>1.000</b></td><td class="up">+31.4</td><td>15 / 7</td><td>0 / 0</td></tr>
+<tr><td>Access Control</td><td>52</td><td>0.486</td><td>0.800</td><td class="up">+31.4</td><td>0 / 36</td><td>12 / 2</td></tr>
+<tr><td>Front Running</td><td>7</td><td>0.114</td><td>0.771</td><td class="up">+65.7</td><td>60 / 2</td><td>9 / 7</td></tr>
+<tr><td>Time manipulation</td><td>16</td><td>0.657</td><td>0.886</td><td class="up">+22.9</td><td>24 / 0</td><td>8 / 0</td></tr>
+<tr><td>DoS</td><td>9</td><td>0.700</td><td>0.900</td><td class="up">+20.0</td><td>17 / 4</td><td>3 / 4</td></tr>
+<tr><td>Reentrancy</td><td>31</td><td>0.829</td><td>0.857</td><td class="up">+2.8</td><td>8 / 4</td><td>10 / 0</td></tr>
+<tr><td>Arithmetic</td><td>30</td><td>0.543</td><td>0.543</td><td>0.0</td><td>15 / 17</td><td>17 / 15</td></tr>
+<tr><td>Bad Randomness</td><td>7</td><td>0.943</td><td>0.771</td><td class="dn">−17.2</td><td>0 / 4</td><td>16 / 0</td></tr>
+</table></div>
+<p>Six categories improve, one is unchanged and one regresses. Bad Randomness now catches all 7 positives (it missed 4 before) but pays 16 false positives, because the rule "<code>block.number</code> in a decision" fires more often than the analyzers did. Arithmetic is the one category untouched by both changes and the obvious next target: it still carries 17 false positives and 15 misses.</p>
+
+<h2>Comparison with the six analyzers behind DIVE</h2>
+<p>Scored on the same 70 contracts and the same 560 cells. A blank cell means the tool was not run on that contract and category, so each tool is also scored over just the cells it covered.</p>
+<div class="scroll"><table>
+<tr><th>Detector</th><th>Cell coverage</th><th>TP</th><th>FP</th><th>Precision</th><th>Recall, cells run</th><th>Recall, all 162</th><th>F1</th></tr>
+<tr class="win"><td>AnchorSlice + Opus 5 (C)</td><td><b>100%</b></td><td>134</td><td>75</td><td>0.641</td><td>0.827</td><td><b>0.827</b></td><td>0.722</td></tr>
+<tr><td>Slither</td><td>78%</td><td>94</td><td>12</td><td>0.89*</td><td>0.64</td><td>0.58</td><td>0.74*</td></tr>
+<tr><td>Solhint</td><td>72%</td><td>74</td><td>24</td><td>0.76*</td><td>0.59</td><td>0.46</td><td>0.66*</td></tr>
+<tr><td>VeriSmart</td><td>6%</td><td>18</td><td>0</td><td>1.00*</td><td>0.58</td><td>0.11</td><td>0.73*</td></tr>
+<tr><td>Mythril</td><td>77%</td><td>35</td><td>0</td><td>1.00*</td><td>0.26</td><td>0.22</td><td>0.41*</td></tr>
+<tr><td>Semgrep</td><td>54%</td><td>0</td><td>0</td><td>—</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+<tr><td>MAIAN</td><td>21%</td><td>0</td><td>2</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+</table></div>
+<p class="note">* These labels were produced by running these tools, so a tool is graded against its own output and its precision is circular by construction. AnchorSlice is scored against a reference it had no part in creating.</p>
+<blockquote>The right reading is coverage, not a league table. DIVE's ground truth is the union of six analyzers, each of which ran on part of the corpus; no single tool answers every category on every contract, and two of the six contribute nothing here. A model-based detector reading a sliced contract reproduces that six-tool consensus on 82% of all cells and recovers 83% of its positives, at complete coverage, without any of the tools.</blockquote>
+
+<h2>Token efficiency and cost</h2>
+<p>The clean measurement is a cold-cache pair on the 20 held-out contracts: identical detector, identical contracts, only the input changes.</p>
+<div class="scroll"><table>
+<tr><th>20 held-out contracts</th><th>Total tokens</th><th>Per contract</th><th>Cost</th><th>Per contract</th></tr>
+<tr><td>Full source, original prompt</td><td>256,805</td><td>12,840</td><td>$1.88</td><td>$0.094</td></tr>
+<tr class="win"><td>AnchorSlice (C)</td><td>201,147 <span class="up">−21.7%</span></td><td>10,057</td><td>$1.47 <span class="up">−21.7%</span></td><td>$0.074</td></tr>
+</table></div>
+<div class="scroll"><table>
+<tr><th>Per contract, all runs</th><th>Input tokens</th><th>Contract tokens cached</th><th>Output tokens</th><th>Cost</th><th>Seconds</th></tr>
+<tr><td>A · full source</td><td>11,631</td><td>6,118</td><td>1,209</td><td>$0.094</td><td>16.9</td></tr>
+<tr><td>B · original slice</td><td>8,536</td><td>3,896</td><td>1,256</td><td>$0.073</td><td>18.6</td></tr>
+<tr class="win"><td>C · current slice + prompt</td><td>9,254</td><td>3,963</td><td>1,383</td><td>$0.077</td><td>24.0</td></tr>
+</table></div>
+<p>Slicing cuts the contract text the detector must read by about 36% (6,118 → 3,963 cached tokens per contract) and total input by 20–26%. Configuration C sits slightly above B because the calibrated prompt is longer and the model writes more justification, and it is slower per contract for the same reason. The slicer itself costs 7.6 ms per contract and needs no compilation.</p>
+<p class="note">The 56.6% token reduction in the current manuscript draft must be withdrawn: its full-source arm reused a warm cache (a median of 13,916 cached tokens read per contract, against 3,324 in a cold run), which inflates the baseline. Every figure on this page comes from cold-cache runs.</p>
+
+<h2>What the paper can claim</h2>
+<p><b>1. Evidence retention (RQ1).</b> 162 of 162 labelled vulnerabilities retained across 70 contracts, 1.00 in every category, including 43/43 on contracts that played no part in developing the anchors. The slice keeps 55% of source characters and is produced in 7.6 ms without compiling.</p>
+<p><b>2. Token efficiency (RQ2).</b> About 22% fewer tokens and 22% lower cost per contract, and roughly 36% less contract text read, measured cold-cache with the detector and contracts held fixed.</p>
+<p><b>3. Detection effectiveness (RQ3).</b> Agreement with the DIVE reference rises from 0.620 to 0.816 and F1 from 0.452 to 0.722 (κ 0.173 → 0.588), with false negatives cut from 74 to 28 and false positives from 139 to 75; McNemar p &lt; 0.0001. On the 55 contracts never used for tuning, F1 still rises from 0.378 to 0.633. Detection quality therefore improves while token cost falls — the two results together, which is the paper's thesis.</p>
+<p><b>4. Coverage.</b> Complete coverage of eight categories on all contracts, against 6–78% for the individual analyzers whose union defines the labels.</p>
+
+<h2>Limitations to state, and what to run next</h2>
+<p>The prompt rules describe how DIVE labels behave, not Solidity semantics: each category is effectively defined by whichever analyzer ran (Front Running comes only from Mythril; Time manipulation mostly from Solhint; Arithmetic mostly from VeriSmart, which ran on 6% of cells). Calibrating to that is legitimate and must be declared, and it limits transfer to other benchmarks. Three runs of one configuration varied by 4.2 points of agreement, so single-run differences below that are noise. Bad Randomness trades 4 misses for 16 false positives and Arithmetic is untouched — both are open. Before submission: a held-out run on fresh contracts from the archive, repeated runs for variance, and an Arithmetic rule derived the same way as the others.</p>
+<p class="note">Data: <code>merged70/results_70_opus_{full,sliced}.json</code>, <code>v4/slice2_cal4_70.json</code>, <code>opus20/</code>; slicer <code>slice2.py</code>; prompt <code>calibrated4</code> in <code>run_eval.py</code>; contracts in <code>selected_ids_50.txt</code> and <code>selected_ids_20new.txt</code>.</p>
+<script>
+const cats=["Unchecked Return","Access Control","Front Running","Time manipulation","DoS","Reentrancy","Arithmetic","Bad Randomness"];
+const A=[.686,.486,.114,.657,.700,.829,.543,.943], C=[1.0,.800,.771,.886,.900,.857,.543,.771];
+const s=document.querySelector('svg'),L=150,W=700,rowH=36,ns='http://www.w3.org/2000/svg';
+const el=(t,a,x)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);if(x!=null)e.textContent=x;s.appendChild(e);return e};
+for(let g=0;g<=5;g++){const x=L+W*g/5;el('line',{x1:x,x2:x,y1:8,y2:8+rowH*8,stroke:'var(--line)'});el('text',{x,y:rowH*8+26,'text-anchor':'middle',class:'m'},(g/5).toFixed(1));}
+cats.forEach((c,i)=>{const y=12+i*rowH;el('text',{x:L-10,y:y+rowH/2-2,'text-anchor':'end'},c);
+ [[A[i],.45],[C[i],1]].forEach(([v,o],j)=>{const yy=y+j*13;el('rect',{x:L,y:yy,width:W*v,height:11,fill:'var(--acc)','fill-opacity':o});
+ el('text',{x:L+W*v+6,y:yy+9,class:'m','font-size':'10'},v.toFixed(3));});});
+el('text',{x:L+W/2,y:rowH*8+44,'text-anchor':'middle',class:'m'},'agreement with DIVE labels, 70 contracts');
+</script>
+</main>

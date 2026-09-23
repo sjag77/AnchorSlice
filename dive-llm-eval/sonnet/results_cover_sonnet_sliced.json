@@ -1,0 +1,401 @@
+{
+  "summary": {
+    "model": "sonnet",
+    "effort": "high",
+    "prompt_variant": "calibrated",
+    "sliced": true,
+    "contracts_evaluated": 5,
+    "contracts_failed": 0,
+    "exact_match_all_8": 0,
+    "label_agreement": 0.725,
+    "hamming_loss": 0.275,
+    "per_category": {
+      "Reentrancy": {
+        "tp": 0,
+        "tn": 2,
+        "fp": 1,
+        "fn": 2,
+        "dive_positives": 2,
+        "llm_positives": 1,
+        "agreement": 0.4,
+        "precision_vs_dive": 0.0,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": -0.3636
+      },
+      "Access Control": {
+        "tp": 0,
+        "tn": 2,
+        "fp": 1,
+        "fn": 2,
+        "dive_positives": 2,
+        "llm_positives": 1,
+        "agreement": 0.4,
+        "precision_vs_dive": 0.0,
+        "recall_vs_dive": 0.0,
+        "f1_vs_dive": 0.0,
+        "cohens_kappa": -0.3636
+      },
+      "Arithmetic": {
+        "tp": 1,
+        "tn": 3,
+        "fp": 0,
+        "fn": 1,
+        "dive_positives": 2,
+        "llm_positives": 1,
+        "agreement": 0.8,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 0.5,
+        "f1_vs_dive": 0.6667,
+        "cohens_kappa": 0.5455
+      },
+      "Unchecked Return Values": {
+        "tp": 2,
+        "tn": 3,
+        "fp": 0,
+        "fn": 0,
+        "dive_positives": 2,
+        "llm_positives": 2,
+        "agreement": 1.0,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 1.0,
+        "f1_vs_dive": 1.0,
+        "cohens_kappa": 1.0
+      },
+      "DoS": {
+        "tp": 1,
+        "tn": 3,
+        "fp": 0,
+        "fn": 1,
+        "dive_positives": 2,
+        "llm_positives": 1,
+        "agreement": 0.8,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 0.5,
+        "f1_vs_dive": 0.6667,
+        "cohens_kappa": 0.5455
+      },
+      "Bad Randomness": {
+        "tp": 1,
+        "tn": 3,
+        "fp": 0,
+        "fn": 1,
+        "dive_positives": 2,
+        "llm_positives": 1,
+        "agreement": 0.8,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 0.5,
+        "f1_vs_dive": 0.6667,
+        "cohens_kappa": 0.5455
+      },
+      "Front Running": {
+        "tp": 2,
+        "tn": 3,
+        "fp": 0,
+        "fn": 0,
+        "dive_positives": 2,
+        "llm_positives": 2,
+        "agreement": 1.0,
+        "precision_vs_dive": 1.0,
+        "recall_vs_dive": 1.0,
+        "f1_vs_dive": 1.0,
+        "cohens_kappa": 1.0
+      },
+      "Time manipulation": {
+        "tp": 1,
+        "tn": 2,
+        "fp": 1,
+        "fn": 1,
+        "dive_positives": 2,
+        "llm_positives": 2,
+        "agreement": 0.6,
+        "precision_vs_dive": 0.5,
+        "recall_vs_dive": 0.5,
+        "f1_vs_dive": 0.5,
+        "cohens_kappa": 0.1667
+      }
+    },
+    "timing": {
+      "run_wall_seconds": 214.01,
+      "sum_per_call_wall_seconds": 214.0,
+      "sum_cli_duration_ms": 200771,
+      "sum_api_duration_ms": 199328,
+      "mean_wall_seconds_per_contract": 42.8
+    },
+    "tokens": {
+      "input_tokens": 10,
+      "output_tokens": 11561,
+      "cache_creation_input_tokens": 10669,
+      "cache_read_input_tokens": 16495,
+      "total_tokens": 38735
+    },
+    "cost_usd": 0.1813
+  },
+  "records": [
+    {
+      "contractID": "5282",
+      "source_chars": 1152,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 1,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 1,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.85,
+        "Access Control": 0.2,
+        "Arithmetic": 0.2,
+        "Unchecked Return Values": 0.85,
+        "DoS": 0.1,
+        "Bad Randomness": 0.05,
+        "Front Running": 0.1,
+        "Time manipulation": 0.55
+      },
+      "reasons": {
+        "Reentrancy": "GetEther() sends ether via a low-level call.value() to msg.sender and only zeroes ExtractDepositTime[msg.sender] afterward; an attacker contract's fallback can re-enter GetEther and drain 0.3 ether repeatedly before state is reset.",
+        "Unchecked Return Values": "The return value of msg.sender.call.value(0.3 ether)() in GetEther() is never checked, so a failed transfer is silently ignored while state may still be cleared.",
+        "Time manipulation": "Both fund release (ExtractDepositTime[msg.sender] < now) and owner withdrawal (now > LastExtractTime + 2 days) gate value-moving logic directly on block.timestamp (now)."
+      },
+      "agreement": 5,
+      "wall_seconds": 97.14,
+      "cli_duration_ms": 93958,
+      "api_duration_ms": 92739,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1661,
+        "cache_creation_input_tokens": 1643,
+        "cache_read_input_tokens": 3299,
+        "total_tokens": 6605
+      },
+      "cost_usd": 0.0435018,
+      "num_turns": 3,
+      "session_id": "6e3403ae-9d63-4cbb-be13-381409122efd"
+    },
+    {
+      "contractID": "10268",
+      "source_chars": 1168,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.2,
+        "Access Control": 0.15,
+        "Arithmetic": 0.05,
+        "Unchecked Return Values": 0.15,
+        "DoS": 0.05,
+        "Bad Randomness": 0.02,
+        "Front Running": 0.1,
+        "Time manipulation": 0.02
+      },
+      "reasons": {},
+      "agreement": 5,
+      "wall_seconds": 20.03,
+      "cli_duration_ms": 18045,
+      "api_duration_ms": 17971,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 1410,
+        "cache_creation_input_tokens": 1608,
+        "cache_read_input_tokens": 3299,
+        "total_tokens": 6319
+      },
+      "cost_usd": 0.0211958,
+      "num_turns": 2,
+      "session_id": "2b48e48d-c016-48ee-982d-27d8f9a7aa89"
+    },
+    {
+      "contractID": "7699",
+      "source_chars": 4405,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 1,
+        "Access Control": 0,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 1,
+        "Unchecked Return Values": 0,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.15,
+        "Access Control": 0.1,
+        "Arithmetic": 0.7,
+        "Unchecked Return Values": 0.1,
+        "DoS": 0.15,
+        "Bad Randomness": 0.85,
+        "Front Running": 0.5,
+        "Time manipulation": 0.15
+      },
+      "reasons": {
+        "Arithmetic": "Solidity 0.4.24 with no SafeMath; jackpot/house_edge/balance arithmetic (e.g. address(this).balance - house_edge, jackpot +/- percentages) operates directly on user/attacker-influenced values with no overflow/underflow protection.",
+        "Bad Randomness": "lucky_number is derived from keccak256 of entry_number, block.number and blockhash(block.number) (current block's hash, which is actually always 0, and in any case miner-influenceable), then used to decide payouts - classic on-chain randomness weakness.",
+        "Front Running": "Win outcomes are deterministically tied to a public, incrementing entry_number (e.g. every 999th entry wins a large jackpot share) and to block-derived values visible/predictable from the mempool, letting participants or miners time/reorder entries to capture payouts."
+      },
+      "agreement": 7,
+      "wall_seconds": 31.33,
+      "cli_duration_ms": 29371,
+      "api_duration_ms": 29311,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 2899,
+        "cache_creation_input_tokens": 2230,
+        "cache_read_input_tokens": 3299,
+        "total_tokens": 8430
+      },
+      "cost_usd": 0.038573800000000005,
+      "num_turns": 2,
+      "session_id": "1f0602c1-eb23-4ac7-8bdd-c9cc99861eea"
+    },
+    {
+      "contractID": "11894",
+      "source_chars": 8915,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 1
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 1,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 0,
+        "DoS": 1,
+        "Bad Randomness": 0,
+        "Front Running": 1,
+        "Time manipulation": 0
+      },
+      "confidence": {
+        "Reentrancy": 0.15,
+        "Access Control": 0.55,
+        "Arithmetic": 0.15,
+        "Unchecked Return Values": 0.1,
+        "DoS": 0.6,
+        "Bad Randomness": 0.05,
+        "Front Running": 0.55,
+        "Time manipulation": 0.2
+      },
+      "reasons": {
+        "Access Control": "transferOwnership() and setWalletOwnerAddress() are onlyOwner but lack zero-address validation, allowing owner to accidentally/maliciously brick funds/roles or set an unreachable address.",
+        "DoS": "Every token purchase via the fallback triggers withdraw() which sends the entire contract balance to a single walletOwnerAddress via require(_to.send(...)); if that address is a contract that rejects payment (or runs out of gas), every future purchase reverts, freezing the sale for all users.",
+        "Front Running": "approve(address,uint256) sets the allowance directly to a new value without any check against the prior value, exposing the classic ERC20 approve/transferFrom front-running race."
+      },
+      "agreement": 6,
+      "wall_seconds": 33.45,
+      "cli_duration_ms": 29343,
+      "api_duration_ms": 29294,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 2693,
+        "cache_creation_input_tokens": 3583,
+        "cache_read_input_tokens": 3299,
+        "total_tokens": 9577
+      },
+      "cost_usd": 0.0419258,
+      "num_turns": 2,
+      "session_id": "3f34b980-f3df-4e46-b969-d301d8e12d00"
+    },
+    {
+      "contractID": "11369",
+      "source_chars": 2427,
+      "truncated": false,
+      "ground_truth": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 1,
+        "Front Running": 0,
+        "Time manipulation": 0
+      },
+      "prediction": {
+        "Reentrancy": 0,
+        "Access Control": 0,
+        "Arithmetic": 0,
+        "Unchecked Return Values": 1,
+        "DoS": 0,
+        "Bad Randomness": 0,
+        "Front Running": 0,
+        "Time manipulation": 1
+      },
+      "confidence": {
+        "Reentrancy": 0.1,
+        "Access Control": 0.15,
+        "Arithmetic": 0.05,
+        "Unchecked Return Values": 0.6,
+        "DoS": 0.1,
+        "Bad Randomness": 0.1,
+        "Front Running": 0.1,
+        "Time manipulation": 0.75
+      },
+      "reasons": {
+        "Unchecked Return Values": "takeToken uses low-level address.call(transferMethodId, targetAddress, amount) on solc 0.4.24, which only returns whether the call itself succeeded, not the actual ERC20 return data/success flag; a token that returns false instead of reverting would appear successful, and no internal require() validates the actual transfer outcome before returning.",
+        "Time manipulation": "The unlocked modifier gates the fund-moving takeToken function purely on block.number >= unlockBlock, a block-height/time based decision variable that determines when funds can be withdrawn."
+      },
+      "agreement": 6,
+      "wall_seconds": 32.06,
+      "cli_duration_ms": 30054,
+      "api_duration_ms": 30013,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 2898,
+        "cache_creation_input_tokens": 1605,
+        "cache_read_input_tokens": 3299,
+        "total_tokens": 7804
+      },
+      "cost_usd": 0.0360638,
+      "num_turns": 2,
+      "session_id": "2656be43-a004-43e0-9746-a5204d00d08e"
+    }
+  ]
+}

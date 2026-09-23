@@ -1,0 +1,60 @@
+==============================================================================
+A/B: merged70/results_70_opus_full.json  vs  merged70/results_70_opus_sliced.json
+     70 contracts | model opus effort=high prompt=calibrated
+==============================================================================
+
+--- ACCURACY -----------------------------------------------------------------
+metric                      baseline      sliced           delta
+Label agreement                62.0%       62.1%         +0.2% +
+Hamming loss                   38.0%       37.9%         -0.2% +
+Exact match (8/8)               0.0%        2.9%         +2.9% +
+Precision                      38.8%       40.3%         +1.5% +
+Recall                         54.3%       64.2%         +9.9% +
+F1                             45.2%       49.5%         +4.3% +
+Cohen's kappa                 0.1733      0.2169       +0.0436 +
+Mean agree /8                   4.96        4.97          +0.01
+
+confusion                    TP     FP     FN     TN
+  baseline                   88    139     74    259
+  sliced                    104    154     58    244
+  delta                     +16    +15    -16    -15
+
+--- PER CATEGORY -------------------------------------------------------------
+category                 DIVE+  agree A  agree B      d  FP A  FP B  FN A  FN B
+Reentrancy                  31    0.829    0.843  +1.4     8    10     4     1
+Access Control              52    0.486    0.571  +8.6     0     2    36    28
+Arithmetic                  30    0.543    0.543  +0.0    15    16    17    16
+Unchecked Return Values     10    0.686    0.671  -1.4    15    18     7     5
+DoS                          9    0.700    0.571 -12.9    17    26     4     4
+Bad Randomness               7    0.943    0.929  -1.4     0     1     4     4
+Front Running                7    0.114    0.186  +7.1    60    57     2     0
+Time manipulation           16    0.657    0.657  +0.0    24    24     0     0
+
+--- COST ---------------------------------------------------------------------
+metric                        baseline        sliced             delta
+Input tokens                       256           150     -106 (-41.4%)
+Output tokens                   87,975        78,985   -8,990 (-10.2%)
+Cache write                    247,735       254,359    +6,624 (+2.7%)
+Cache read                     834,797       258,786 -576,011 (-69.0%)
+TOTAL tokens                 1,170,763       592,280 -578,483 (-49.4%)
+Cost (USD)                     $5.2936       $4.8173             -9.0%
+Wall clock (s)                  1356.8        1190.3            -12.3%
+Cost / contract                $0.0756       $0.0688             -9.0%
+
+--- EFFICIENCY ---------------------------------------------------------------
+tokens -49.4%, agreement +0.2 pp
+agreement per 100k tokens: baseline 5.29  sliced 10.49
+
+--- PER-CONTRACT SHIFTS ------------------------------------------------------
+improved 19  |  unchanged 32  |  regressed 19
+  best      7469  3/8 -> 5/8  (+2)
+  best      6305  5/8 -> 7/8  (+2)
+  best     19147  4/8 -> 6/8  (+2)
+  best     11108  6/8 -> 8/8  (+2)
+  best      9755  6/8 -> 7/8  (+1)
+  worst     1029  5/8 -> 4/8  (-1)
+  worst    10111  5/8 -> 4/8  (-1)
+  worst    10030  6/8 -> 5/8  (-1)
+  worst    18400  6/8 -> 4/8  (-2)
+  worst     5665  6/8 -> 3/8  (-3)
+==============================================================================
