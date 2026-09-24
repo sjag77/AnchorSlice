@@ -77,7 +77,7 @@ def figure_pipeline():
 
     # ---------------- AnchorSlice
     ax.text(0.02, 0.555, 'A N C H O R S L I C E', fontsize=8.0, color=SLICE, fontweight='bold')
-    ax.add_patch(FancyBboxPatch((0.205, 0.10), 0.475, 0.40,
+    ax.add_patch(FancyBboxPatch((0.205, 0.085), 0.44, 0.415,
                                 boxstyle='round,pad=0.006,rounding_size=0.012',
                                 linewidth=1.0, edgecolor=SLICE, facecolor='#f3f8fa',
                                 linestyle=(0, (4, 3)), zorder=1))
@@ -87,13 +87,13 @@ def figure_pipeline():
     node(0.225, 0.26, 0.125, 0.14, 'anchor set\nDASP 1–8', accent=True, fs=8.8)
     link(0.19, 0.33, 0.222, color=SLICE)
 
-    node(0.385, 0.325, 0.27, 0.115, 'slicer:  strip · collapse · anchor', accent=True, fs=8.8)
-    node(0.385, 0.135, 0.27, 0.115, 'decision rules:  example · rule · rate', accent=True, fs=8.8)
-    link(0.351, 0.355, 0.382, 0.383, SLICE)
-    link(0.351, 0.305, 0.382, 0.193, SLICE)
+    node(0.375, 0.315, 0.245, 0.135, 'slicer\nstrip · collapse · anchor', accent=True, fs=8.6)
+    node(0.375, 0.115, 0.245, 0.135, 'decision rules\nexample · rule · base rate', accent=True, fs=8.6)
+    link(0.351, 0.355, 0.372, 0.383, SLICE)
+    link(0.351, 0.305, 0.372, 0.183, SLICE)
 
-    link(0.657, 0.383, 0.714, 0.355, SLICE)
-    link(0.657, 0.193, 0.714, 0.305, SLICE)
+    link(0.622, 0.383, 0.714, 0.355, SLICE)
+    link(0.622, 0.183, 0.714, 0.305, SLICE)
     node(0.72, 0.26, 0.15, 0.14, 'LLM detector')
     link(0.872, 0.33, 0.888)
     node(0.89, 0.26, 0.08, 0.14, 'eight\nlabels')
