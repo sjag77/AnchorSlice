@@ -27,7 +27,7 @@ def save(fig, name):
     for d in OUT:
         if os.path.isdir(d):
             fig.savefig(os.path.join(d, name), dpi=400, bbox_inches='tight',
-                        facecolor='white', pad_inches=0.04)
+                        facecolor='white', pad_inches=0.08)
     plt.close(fig)
     print('wrote', name)
 
@@ -45,7 +45,8 @@ def arrow(ax, x1, y, x2, color=MUTE, lw=1.1):
 
 def figure_pipeline():
     fig, ax = plt.subplots(figsize=(7.4, 2.75))
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.axis('off')
+    # a little slack on every side so box borders and edge labels are not clipped
+    ax.set_xlim(-0.025, 1.025); ax.set_ylim(-0.06, 1.04); ax.axis('off')
 
     # --- Arm A
     ax.text(0.005, 0.95, 'Arm A · ordinary practice', fontsize=10, fontweight='bold', color=INK)
@@ -76,11 +77,10 @@ def figure_pipeline():
     arrow(ax, 0.858, 0.21, 0.878)
     box(ax, 0.88, 0.11, 0.115, 0.20, '8 DASP\nlabels', face='#f4f7f8')
 
-    ax.annotate('56.5% of characters kept · evidence retention 463/463',
-                xy=(0.60, 0.09), xytext=(0.60, 0.015), fontsize=8.8, color=SLICE,
-                ha='center', style='italic')
-    ax.text(0.005, 0.015, '4,689 tokens · $0.032 · 8.4 s per contract',
+    ax.text(0.005, 0.02, '4,689 tokens · $0.032 · 8.4 s per contract',
             fontsize=8.6, color=SLICE, ha='left', fontweight='bold')
+    ax.text(0.995, 0.02, '56.5% of characters kept · evidence retention 463/463',
+            fontsize=8.6, color=SLICE, ha='right', style='italic')
     save(fig, 'fig1_pipeline.png')
 
 # ------------------------------------------------------------------ Fig. 2
@@ -118,7 +118,7 @@ def figure_per_category():
 
 # ------------------------------------------------------------------ Fig. 3
 def figure_resources():
-    fig, axes = plt.subplots(1, 4, figsize=(7.4, 2.05))
+    fig, axes = plt.subplots(1, 4, figsize=(7.4, 1.95))
     panels = [('Tokens per contract', 10465, 4689, '{:,.0f}', '−55.2%'),
               ('Cost per contract (USD)', 0.089, 0.032, '{:.3f}', '−63.7%'),
               ('Seconds per contract', 20.8, 8.4, '{:.1f}', '−59.7%'),

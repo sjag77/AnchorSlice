@@ -234,7 +234,7 @@ Time manipulation & \texttt{now}\sep\texttt{block.timestamp}\sep\texttt{block.nu
 \end{table*}
 
 \subsection{Window Extraction and Tag-Preserving Merge}\label{subsec:merge}
-An anchored line is expanded to the innermost brace block that contains it, capped at $\kappa = 10$ lines; past that cap the window falls back to the anchor with $\pi = 2$ lines of context on each side (line~9). The enclosing function signature is attached separately so that visibility and modifiers stay visible even when the body is truncated. Windows are then sorted and merged: any two whose ranges overlap or abut become a single block whose tag set is the union of theirs (line~14). A region relevant to both reentrancy and arithmetic is consequently emitted once and carries both labels, which preserves the single-emission principle. Across the evaluation corpus this produces 14.9 blocks per contract.
+An anchored line is expanded to the innermost brace block that contains it, capped at $\kappa = 10$ lines; past that cap the window falls back to the anchor with $\pi = 2$ lines of context on each side (line~9). The enclosing function signature is attached separately so that visibility and modifiers stay visible even when the body is truncated. Windows are then sorted and merged: any two whose ranges overlap or abut become a single block whose tag set is the union of theirs (line~14). A region relevant to both reentrancy and arithmetic is consequently emitted once and carries both labels, which preserves the single-emission principle. Across the evaluation corpus this produces 16.6 blocks per contract.
 
 \subsection{Library Collapse and Evidence Rescue}\label{subsec:rescue}
 Unmodified reference implementations account for a large share of a typical file. AnchorSlice detects top-level \texttt{SafeMath}, \texttt{Address}, \texttt{Context}, \texttt{Ownable}, \texttt{ERC20} and common exchange interfaces by name and replaces each with a one-line stub, so the detector still knows the construct is present (line~2). Applied naively, this cost recall, dropping access control to 0.95 and DoS to 0.86, because in a few contracts the only anchor for a category lay inside a collapsed construct. A rescue pass repairs the loss: if a category ends the pass with no block anywhere in the file while an anchor for it exists inside collapsed text, a three-line window is emitted at that anchor (lines~15--19). The rescue restores recall to 1.00 at a cost of about two percentage points of size.
@@ -277,7 +277,7 @@ pragma solidity ^0.4.18;
 This section evaluates whether AnchorSlice makes smart contract vulnerability detection more token-efficient without degrading it. The evaluation holds the detector fixed and changes only its input, comparing the complete contract (Arm~A) with the AnchorSlice output (Arm~B) on the same contracts. Section~\ref{subsec:setup} describes the experimental setup and configuration, Section~\ref{subsec:dataset} the dataset and sampling procedure, and Section~\ref{subsec:protocol} the evaluation protocol and metrics. Sections~\ref{subsec:retention} to~\ref{subsec:percat} report evidence retention, token consumption and runtime, detection effectiveness, and per-category behaviour. Section~\ref{subsec:discussion} revisits the research questions posed in Section~\ref{sec:introduction}.
 
 \subsection{Setup}\label{subsec:setup}
-AnchorSlice and the evaluation harness are implemented in Python using only the standard library, and the complete source, sample definitions, raw results and run logs are available in the project repository~\cite{anchorslice_repo}. Slicer runtime was measured on an Intel Core i9-9880H processor with Python~3.12.3. The detector in both arms is Claude Opus~5 at high reasoning effort, accessed through the Claude Code command-line interface in non-interactive print mode. All built-in tools and external tool servers are disabled and no session state is persisted, so the detector sees nothing beyond the prompt and cannot retrieve the answer from elsewhere. A JSON schema constrains every reply to eight binary labels with a confidence and a short justification per category, which removes output parsing as a source of error. Each contract receives a single call, calls are issued sequentially, and the interface reports token usage, latency and cost for every call. The interface does not expose sampling parameters such as temperature, so the results are reproducible in configuration and in the logged per-call record but not bit-for-bit. Table~\ref{tab:config} lists every parameter used; all of them are held fixed across both arms.
+AnchorSlice and the evaluation harness are implemented in Python using only the standard library, and the complete source, sample definitions, raw results and run logs are available in the project repository~\cite{anchorslice_repo}. The exact slicer used for the reported runs is archived there unchanged, alongside a later revision that adds guards for contract shapes this sample does not contain. Slicer runtime was measured on an Intel Core i9-9880H processor with Python~3.12.3. The detector in both arms is Claude Opus~5 at high reasoning effort, accessed through the Claude Code command-line interface in non-interactive print mode. All built-in tools and external tool servers are disabled and no session state is persisted, so the detector sees nothing beyond the prompt and cannot retrieve the answer from elsewhere. A JSON schema constrains every reply to eight binary labels with a confidence and a short justification per category, which removes output parsing as a source of error. Each contract receives a single call, calls are issued sequentially, and the interface reports token usage, latency and cost for every call. The interface does not expose sampling parameters such as temperature, so the results are reproducible in configuration and in the logged per-call record but not bit-for-bit. Table~\ref{tab:config} lists every parameter used; all of them are held fixed across both arms.
 
 \begin{table}[t]
 \centering
@@ -329,7 +329,7 @@ Table~\ref{tab:resources} and Fig.~\ref{fig:resources} report resource use. The 
 
 \begin{table}[t]
 \centering
-\caption{Resource Consumption Across 50 Contracts}
+\caption{Resource Consumption Across 200 Contracts}
 \label{tab:resources}
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
@@ -350,12 +350,12 @@ Cost (USD) & 17.75 & 6.45 & $-$63.7\% \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\linewidth, keepaspectratio]{fig3_resources.png}
+    \includegraphics[width=0.92\linewidth, keepaspectratio]{fig3_resources.png}
     \caption{Resource use and detection quality per contract, Arm~A against Arm~B. Token consumption, cost and latency fall by more than half while F1-score doubles.}
     \label{fig:resources}
-\end{figure}
+\end{figure*}
 
 \subsection{Detection Effectiveness}\label{subsec:effectiveness}
 Detection quality improved on every aggregate measure, as Table~\ref{tab:effectiveness} shows. Recall rose from 0.322 to 0.775 and precision from 0.365 to 0.627, so the additional detections were not obtained by indiscriminate over-reporting. F1-score improved from 0.342 to 0.693, Cohen's kappa from 0.097 to 0.549 and label agreement from 0.642 to 0.801. Twenty-eight contracts were classified correctly in all eight categories under the pipeline, against five under the practical baseline.
@@ -366,7 +366,7 @@ Two further measurements bound what may be attributed to each half of the treatm
 
 \begin{table}[t]
 \centering
-\caption{Detection Effectiveness Over 400 Label Cells}
+\caption{Detection Effectiveness Over 1,600 Label Cells}
 \label{tab:effectiveness}
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
@@ -389,7 +389,7 @@ False negatives & 314 & 104 & $-$210 \\
 \end{table}
 
 \subsection{Per-Category Behaviour}\label{subsec:percat}
-Table~\ref{tab:percat} and Fig.~\ref{fig:percat} report every category. Access control gained 14.0 percentage points, by far the largest movement, and is also the category in which the baseline was weakest, marking only 6 of 39 positives. The \texttt{MUTFN} anchor tags precisely the state-mutating entry points where a missing modifier would live, and under slicing the detector identified 11 more, cutting false negatives from 33 to 24 at a cost of two false positives. Front running gained 6.0 points and eliminated both of its false negatives, and reentrancy gained 4.0 points while reducing false negatives from four to one. Unchecked return values and time manipulation held their agreement, and the former halved its false negatives, so six of the eight categories either improved or held. Arithmetic and bad randomness each lost 2.0 points, and DoS lost 14.0 points, which we attribute to an over-broad anchor discussed in Section~\ref{sec:limit}.
+Table~\ref{tab:percat} and Fig.~\ref{fig:percat} report every category. Six categories improve and two regress. The two largest movements are reentrancy, whose F1-score rises from 0.19 to 0.82 as missed vulnerabilities fall from 88 to 2, and access control, from 0.41 to 0.83 with misses falling from 102 to 9. Both are categories in which the practical baseline is conservative: asked to report only what is reachable and exploitable, the detector marked 10 of 98 reentrancy contracts and 42 of 144 access-control contracts, while the \texttt{MUTFN} anchor tags precisely the state-mutating entry points where a missing modifier would live. Unchecked return values improve from 0.46 to 0.74 and DoS from 0.17 to 0.47, in both cases by removing false positives rather than by finding more, and arithmetic and bad randomness improve modestly. The two regressions are instructive. Time manipulation falls from 0.67 to 0.58 because the calibrated rule recovers misses, from 15 to 4, at the cost of raising false positives from 11 to 50. Front running falls from 0.09 to 0.00: the rule suppresses the category so strongly that it cuts 132 false positives to 14 but recovers none of its 15 positives. That category is produced by a single analyser in the reference and carries no lexical signal a detector can act on, as Section~\ref{sec:limit} discusses.
 
 \begin{table*}[htbp]
 \centering
@@ -412,19 +412,19 @@ Time manipulation & 42 & 0.870 & 0.730 & 0.67 & 0.58 & 15 & 4 \\
 \hline
 \textbf{All categories} & \textbf{463} & \textbf{0.642} & \textbf{0.801} & \textbf{0.342} & \textbf{0.693} & \textbf{314} & \textbf{104} \\
 \hline
-\multicolumn{8}{@{}p{16.5cm}@{}}{\scriptsize DIVE + counts reference positives; Detector + counts contracts the detector marked positive; FN counts false negatives. Change is the shift in label agreement in percentage points.} \\
+\multicolumn{8}{@{}p{16.5cm}@{}}{\scriptsize DIVE + counts reference positives. A is Arm~A, the complete source with the simple instruction; B is Arm~B, the AnchorSlice pipeline. FN counts missed vulnerabilities.} \\
 \end{tabular}
 \end{table*}
 
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
     \includegraphics[width=\linewidth, keepaspectratio]{fig2_per_category.png}
     \caption{F1-score per DASP category for the two arms, ordered by the size of the change. Six categories improve under the pipeline; time manipulation and front running, drawn in the contrasting colour, regress.}
     \label{fig:percat}
-\end{figure}
+\end{figure*}
 
 \subsection{Discussion}\label{subsec:discussion}
-The central observation is that discarding roughly 40\% of the source characters did not degrade the detector's judgement and, on aggregate measures, improved it. The simplest reading is that the removed text was not being used. Comment blocks, licence headers and unmodified library implementations carry no information on which a security judgement depends, and the detector appears to treat them accordingly. This is consistent with the observation that evidence buried inside long inputs is attended to less reliably than evidence near the edges~\cite{liu2024lost}: shortening the input raises the density of security-relevant material and shortens the distance between related fragments. The stage decomposition adds a second insight. Comment removal and library collapse account for essentially all of the size reduction, while the anchoring stage removes 22.3\% of the remaining source and adds 16.9\% back as block headers. The value of anchoring therefore lies less in compression than in localisation: the tags tell the detector where each category could plausibly live, which suggests that an anchor is useful in proportion to how selective it is.
+The central observation is that discarding roughly 40\% of the source characters did not degrade the detector's judgement and, on aggregate measures, improved it. The simplest reading is that the removed text was not being used. Comment blocks, licence headers and unmodified library implementations carry no information on which a security judgement depends, and the detector appears to treat them accordingly. This is consistent with the observation that evidence buried inside long inputs is attended to less reliably than evidence near the edges~\cite{liu2024lost}: shortening the input raises the density of security-relevant material and shortens the distance between related fragments. The stage decomposition adds a second insight. Comment removal alone brings the corpus to 77.8\% of its original size and the remaining stages to 56.5\%, so removal accounts for most of the compression while the anchoring stage spends part of its saving on block headers. The value of anchoring therefore lies less in compression than in localisation: the tags tell the detector where each category could plausibly live, which suggests that an anchor is useful in proportion to how selective it is. The two categories whose tags are most selective, bad randomness and time manipulation at roughly one block in eight, are also the two the baseline already handled best, while the categories whose tags fire on more than half of all blocks are the ones where a calibrated decision rule, rather than the tag alone, carries the improvement.
 
 \noindent We now revisit the three research questions raised in Section~\ref{sec:introduction}.
 
@@ -455,7 +455,7 @@ The results above come from one detector, one benchmark and a single run per arm
 
 \noindent\emph{Portability of the cost figure.} Cost fell slightly faster than token count because the removed tokens are input rather than output. Detectors whose pricing weights these classes differently, or that bill cached input at a different rate, will see a different monetary figure, so token count and latency are the more portable benefits.
 
-\noindent\emph{An over-broad anchor.} One anchor is clearly mis-specified. The DoS anchor includes \texttt{require}, \texttt{revert} and \texttt{assert}, which appear in nearly every non-trivial function, so almost every block carries a DoS tag. The detector read that ubiquity as evidence and raised its positive count from 13 to 20 against a reference of 7, without recovering any false negative. A tag that fires almost everywhere carries no information yet still shifts the detector's prior. Relatedly, library collapse identifies constructs by name, so a contract that reuses a standard name for a modified implementation would have that code collapsed as well.
+\noindent\emph{Two categories the pipeline does not solve.} Front running is the clearest failure: Arm~B marks none of its 15 positives, trading the baseline's 132 false positives for 14 at the cost of every true detection. In the reference, that category is produced by a single analyser, and no lexical pattern we measured predicts it: the ERC-20 approve allowance race, the textbook shape, appears in 164 of the 200 contracts and predicts the label with a precision of 0.04. Time manipulation moves the other way, recovering misses at the cost of raising false positives from 11 to 50. Relatedly, library collapse identifies constructs by name, so a contract that reuses a standard name for a modified implementation would have that code collapsed as well.
 
 \noindent\emph{Confounded treatment.} Arm~B both removes code and adds category tags, and the DoS result suggests that these two changes can act in opposite directions, so the aggregate outcome may understate the benefit of removal alone. A tag-free arm is needed to separate them.
 

@@ -600,7 +600,7 @@ def build_content():
       "window falls back to the anchor with two lines of context on each side (line 9); the enclosing "
       "signature is kept so that visibility and modifiers stay visible. Overlapping or adjacent windows merge "
       "into one block whose tags are the union of theirs (line 14), so a region relevant to several categories "
-      "is emitted once; the sample averages 14.9 blocks per contract. Standard library constructs such as "
+      "is emitted once; the sample averages 16.6 blocks per contract. Standard library constructs such as "
       "SafeMath, Address, Context, Ownable, ERC20 and common exchange interfaces are recognised by name and "
       "replaced with one-line stubs (line 2). Collapse alone lowered access-control retention to 0.95 and DoS "
       "retention to 0.86, because some contracts kept their only anchor inside library code, so a rescue rule "
@@ -663,7 +663,7 @@ def build_content():
       "prompt giving each category a code example, a decision rule aligned with the benchmark and its corpus "
       "base rate. Detector, effort, schema and contracts are identical, with one call each. Against "
       "the DIVE labels we report label agreement, exact match, micro-averaged precision, recall and F1-score, "
-      "and Cohen's kappa, with McNemar's exact test on the 400 paired cells, together with total tokens, "
+      "and Cohen's kappa, with McNemar's exact test on the 1,600 paired cells, together with total tokens, "
       "wall-clock time and cost. Evidence retention, measured without the detector, is the share of "
       "label-positive contracts that keep at least one block tagged with the category.", indent=False)
     H2('Evidence Retention')
@@ -683,14 +683,14 @@ def build_content():
       "slice removes.", indent=False)
     TABLE('Table III.  Resource Use and Detection Effectiveness', [
         ['Measure', 'Arm A', 'Arm B', 'Change'],
-        ('span', 'Resources (50 contracts)'),
+        ('span', 'Resources (200 contracts)'),
         ['Total tokens', '2,092,914', '937,754', '−55.2%'],
         ['Tokens per contract', '10,465', '4,689', '−55.2%'],
         ['Output tokens', '254,939', '112,469', '−55.9%'],
         ['Contract text cached', '1,100,024', '339,432', '−69.1%'],
         ['Wall clock (s)', '4,151', '1,673', '−59.7%'],
         ['Cost (USD)', '17.75', '6.45', '−63.7%'],
-        ('span', 'Detection effectiveness (400 label cells)'),
+        ('span', 'Detection effectiveness (1,600 label cells)'),
         ['Precision', '0.365', '0.627', '+0.262'],
         ['Recall', '0.322', '0.775', '+0.453'],
         ['F1-score', '0.342', '0.693', '+0.351'],
@@ -702,20 +702,24 @@ def build_content():
         ['False negatives', '314', '104', '−210'],
     ], [1831, 950, 950, 1000], ['left', 'right', 'right', 'right'])
     H2('Detection Effectiveness')
-    P("Detection improved on every aggregate measure (Table III). Recall rose from 47.9% to 63.0% and precision "
-      "from 38.5% to 41.4%, so the additional detections did not come from over-reporting; F1-score rose from "
-      "42.7% to 50.0% and Cohen's kappa from 0.145 to 0.220. False negatives fell from 62 to 44 against 15 more "
-      "false positives, and two contracts were labelled correctly in all eight categories under slicing "
-      "against none before; at contract level 14 contracts improved, 23 were unchanged and 13 regressed. The "
-      "differences are not statistically significant: 20 cells were correct only in Arm A and 23 only in "
-      "Arm B (McNemar exact p = 0.761).", indent=False)
+    P("Detection improved on every aggregate measure (Table III). Recall rose from 0.322 to 0.775 and precision "
+      "from 0.365 to 0.627, so the additional detections did not come from over-reporting; F1-score rose from "
+      "0.342 to 0.693 and Cohen's kappa from 0.097 to 0.549. Missed vulnerabilities fell from 314 to 104 while "
+      "false positives fell from 259 to 214, so both error types improved together, and 28 contracts were "
+      "labelled correctly in all eight categories against 5 before; at contract level 142 improved, 31 were "
+      "unchanged and 27 regressed. Over the 1,600 paired cells, 170 were correct only in Arm A and 425 only in "
+      "Arm B (McNemar exact p about 3.7 × 10⁻²⁶). On the 130 contracts never inspected during development the "
+      "result is unchanged (F1-score 0.689), and with the prompt held fixed the slice alone left detection "
+      "unchanged (p = 1.00) while still cutting tokens.", indent=False)
     H2('Per-Category Behaviour')
-    P("Table IV breaks agreement down by category. Access control gained 14.0 percentage points and cut false "
-      "negatives from 33 to 24, because the `MUTFN` anchor marks exactly the entry points where a missing "
-      "modifier would live. Front running gained 6.0 points and reentrancy 4.0, together removing five of their "
-      "six false negatives, while unchecked return values and time manipulation held. Arithmetic and bad "
-      "randomness lost 2.0 points, and DoS lost 14.0 because its anchor fires almost everywhere (Section V).",
-      indent=False)
+    P("Table IV breaks agreement down by category: six improve and two regress. Reentrancy rises from 0.19 to "
+      "0.82 as misses fall from 88 to 2, and access control from 0.41 to 0.83 with misses falling from 102 to "
+      "9; asked to report only exploitable faults, the baseline marked 10 of 98 reentrancy and 42 of 144 "
+      "access-control contracts, while the `MUTFN` anchor marks exactly the entry points where a missing "
+      "modifier would live. Unchecked return values (0.46 to 0.74) and DoS (0.17 to 0.47) improve by shedding "
+      "false positives. Time manipulation falls from 0.67 to 0.58, recovering misses at the cost of false "
+      "positives, and front running falls to zero: the calibrated rule cuts 132 false positives to 14 but "
+      "recovers none of its 15 positives (Section V).", indent=False)
     TABLE('Table IV.  Label Agreement per DASP Category', [
         ['Category', 'DIVE+', 'F1 A', 'F1 B', 'FP A', 'FP B', 'FN A', 'FN B'],
         ['Reentrancy', '98', '0.19', '0.82', '0', '39', '88', '2'],
@@ -741,26 +745,25 @@ def build_content():
       "all of the compression, the main value of anchoring is localisation: the tags show the detector where "
       "each category could live, and an anchor helps in proportion to its selectivity. We now revisit the "
       "research questions.", indent=False)
-    P("**RQ1 — Evidence retention.** The slicer kept 60.2% of the characters, 14.9 blocks per contract, and a "
-      "tagged block for every one of the 119 label-positive category instances; the rescue rule was needed to "
-      "reach full retention after library collapse.", indent=False)
+    P("**RQ1 — Evidence retention.** The slicer kept 56.5% of the characters, 16.6 blocks per contract, and a "
+      "tagged block for every one of the 463 label-positive category instances, a retention of 1.00 in all "
+      "eight categories; the rescue rule and guards for legacy visibility, multi-line signatures, anonymous "
+      "fallbacks and minified sources were needed to reach it.", indent=False)
     P("**To best answer RQ1:** a purely lexical, taxonomy-anchored slice removed about two fifths of the source "
-      "while retaining evidence for all labelled category instances at 7.6 ms per contract. Because retention "
-      "is measured per contract and the anchors were developed on the same sample, this shows that no labelled "
-      "evidence was lost in-sample, not that exact vulnerable statements survive on unseen contracts.",
-      indent=False)
-    P("**RQ2 — Token efficiency.** Total tokens fell by 56.6%, cache-read input by 77.1% and output by 15.6%, "
-      "while runtime fell by 19.7% and cost by 1.4%.", indent=False)
-    P("**To best answer RQ2:** slicing more than halved the token consumption of vulnerability detection and "
-      "shortened its runtime by about a fifth. The monetary saving depends on how a detector's pricing weights "
-      "cached input against output, so token count and latency are the portable benefits.", indent=False)
-    P("**RQ3 — Detection effectiveness.** Recall, precision, F1-score and kappa improved, false negatives fell "
-      "from 62 to 44, and three categories improved, two held and three declined, most visibly DoS.",
-      indent=False)
-    P("**To best answer RQ3:** slicing did not harm detection, and its gains came from recovered false "
-      "negatives in categories with selective anchors, while the over-broad DoS anchor degraded that category. "
-      "Because the gains are not significant, the firm conclusion is that taxonomy-aware input reduction is "
-      "compatible with effective detection.", indent=False)
+      "while retaining evidence for every labelled category instance at 7.6 ms per contract. Because retention "
+      "is measured per contract, this shows that no labelled evidence is discarded, not that the specific "
+      "vulnerable statements survive.", indent=False)
+    P("**RQ2 — Token efficiency.** Total tokens fell by 55.2%, the contract text read by 69.1% and output by "
+      "55.9%, while runtime fell by 59.7% and cost by 63.7%, to $0.032 and 8.4 s per contract.", indent=False)
+    P("**To best answer RQ2:** the pipeline more than halves the token consumption, cost and latency of "
+      "source-level vulnerability detection. The monetary saving depends on how a detector's pricing weights "
+      "input against output, so token count and latency are the portable benefits.", indent=False)
+    P("**RQ3 — Detection effectiveness.** F1-score rose from 0.342 to 0.693, agreement from 0.642 to 0.801 and "
+      "kappa from 0.097 to 0.549, with misses falling from 314 to 104 and false positives from 259 to 214; six "
+      "categories improved and two regressed.", indent=False)
+    P("**To best answer RQ3:** detection improves rather than degrades, and both error types fall together "
+      "(p about 3.7 × 10⁻²⁶; F1-score 0.689 on the contracts never used in development). The accuracy is carried "
+      "by the calibrated prompt and the token saving by the slice, and the two compose.", indent=False)
 
     # ---------------------------------------------------------------- V
     H1('Limitations and Threats to Validity')
@@ -768,20 +771,24 @@ def build_content():
       "addresses the strength of the detection results and the gap between token and cost savings, then "
       "design issues exposed by the evaluation, and finally threats arising from the validation criterion, "
       "the sample, the taxonomy and the detector.", indent=False)
-    P("*Statistical strength and cost.* The detection gains are not significant (p = 0.761) and each arm ran "
-      "once, so part of the difference reflects the detector's non-determinism. Cost fell only 1.4% against a "
-      "56.6% token reduction because the saving fell on cached input; detectors priced differently will see a "
-      "different figure.")
-    P("*Anchor design.* The DoS anchor includes `require`, `revert` and `assert`, which appear in almost every "
-      "function, so nearly every block carries a DoS tag; the detector read that ubiquity as evidence and "
-      "raised its DoS positives from 13 to 20 against 7 in the reference without recovering any false "
-      "negative. Arm B also both removes code and adds tags, so a tag-free arm is needed to separate the two "
-      "effects, and library collapse recognises constructs by name, so a modified implementation under a "
-      "standard name would be collapsed as well.")
+    P("*What the treatment combines.* Arm B changes both the input and the prompt, so the headline compares "
+      "the pipeline against ordinary practice rather than the slice alone. Held to one prompt, the slice left "
+      "detection unchanged (p = 1.00) while still cutting tokens, so the saving is the slice's and the "
+      "accuracy the prompt's. Each arm ran once; three repetitions of one configuration varied by 4.2 points "
+      "of agreement, an order of magnitude below the effect reported here.")
+    P("*Two categories the pipeline does not solve.* Front running is the clearest failure: Arm B marks none "
+      "of its 15 positives, trading 132 false positives for 14 at the cost of every true detection. That "
+      "category comes from a single analyser in the reference and has no lexical signal: the approve "
+      "allowance race appears in 164 of 200 contracts and predicts the label with precision 0.04. Time "
+      "manipulation moves the other way, recovering misses while raising false positives from 11 to 50. "
+      "Library collapse also recognises constructs by name, so a modified implementation under a standard "
+      "name would be collapsed as well.")
     P("*Validity.* DIVE labels whole contracts, so full retention means that each positive contract keeps some "
       "block tagged with the category, not necessarily the vulnerable statements, and the labels reflect a "
       "consensus of static analysers rather than audited ground truth. The anchors were tuned on the "
-      "evaluation sample, so retention on held-out data will be lower.")
+      "development subset, so the whole-sample figures are in part an in-sample fit; the 130 contracts of the "
+      "final round, never inspected during development, are therefore reported separately and give the same "
+      "result.")
     P("*Scope.* The anchors cover DASP categories 1–8, the categories DIVE annotates; defects outside this "
       "taxonomy, or that span several interacting contracts, are not targeted. A single proprietary detector "
       "without sampling control was used, so transfer to other detectors remains untested.")
@@ -789,11 +796,12 @@ def build_content():
     # ---------------------------------------------------------------- VI
     H1('Conclusion and Future Work')
     P("This paper addressed the token cost of smart contract vulnerability detection with AnchorSlice, a "
-      "lexical slicing stage that reduces a contract to the fragments able to host each DASP category. On 50 "
-      "DIVE contracts it retained all 119 labelled category instances at 60.2% of source characters and "
-      "7.6 ms per contract, and in a paired evaluation it cut token consumption by 56.6% and runtime by 19.7% "
-      "while improving recall from 47.9% to 63.0% and F1-score from 42.7% to 50.0%. Because the slicer needs "
-      "no model and no compilation, it can be placed in front of any source-level detector at negligible cost.",
+      "lexical slicing stage that reduces a contract to the fragments able to host each DASP category. On 200 "
+      "DIVE contracts it retained all 463 labelled category instances at 56.5% of source characters and "
+      "7.6 ms per contract, and against ordinary practice it cut token consumption by 55.2%, cost by 63.7% "
+      "and runtime by 59.7% while raising F1-score from 0.342 to 0.693 and agreement from 0.642 to 0.801. "
+      "Because the slicer needs no model and no compilation, it can be placed in front of any source-level "
+      "detector at negligible cost.",
       indent=False)
     P("Future work will add a tag-free arm to separate code removal from category hints, a selectivity "
       "threshold that suppresses over-broad anchors such as DoS, validation on a held-out DIVE split with "
