@@ -357,18 +357,20 @@ ABSTRACT = (
     "once deployed. Detectors that reason over source code are increasingly capable, but their cost, "
     "latency and context capacity are bounded by the number of tokens they read, and most of a deployed "
     "contract is comments, library code and boilerplate that cannot host a vulnerability. This paper "
-    "presents AnchorSlice, a static slicing stage that makes smart contract vulnerability detection "
-    "token-efficient by reducing each contract, before it reaches the detector, to the fragments able "
-    "to host each DASP vulnerability category. AnchorSlice is purely lexical: anchor expressions and "
+    "presents AnchorSlice, a static, model-free method that makes smart contract vulnerability detection "
+    "token-efficient. From one anchor set per DASP category it builds two components: a slicer that reduces "
+    "each contract, before it reaches the detector, to the fragments able to host each category, and "
+    "anchor-derived decision rules that tell the detector what each category means in this corpus. AnchorSlice is purely lexical: anchor expressions and "
     "brace matching decide what survives, overlapping regions are merged once and tagged with the "
     "categories they may host, and library code is collapsed under a rescue rule that preserves "
     "evidence. On 200 contracts from the DIVE benchmark it retains 56.5% of source characters, preserves "
     "evidence for all 463 labelled category instances and needs 7.6 ms per contract. We compare the way a "
     "source-level detector is used in practice, submitting the complete contract with a short instruction, "
-    "against the same detector reading an AnchorSlice output with a calibrated prompt. Token consumption "
+    "against the same detector driven by AnchorSlice. Token consumption "
     "falls by 55.2%, cost by 63.7% and runtime by 59.7%, while F1-score rises from 0.342 to 0.693 and "
     "agreement from 0.642 to 0.801; missed vulnerabilities fall from 314 to 104 and false positives from "
-    "259 to 214 at the same time. Token cost and detection quality therefore improve together.")
+    "259 to 214 at the same time. The slicer accounts for the token saving and the decision rules for the "
+    "detection gain, so one static artefact makes the same detector both cheaper and better.")
 KEYWORDS = ("smart contract vulnerability detection, token efficiency, static slicing, input reduction, "
             "blockchain security, DASP")
 
@@ -502,18 +504,21 @@ def build_content():
 
     # ---------------------------------------------------------------- III
     H1('AnchorSlice')
-    P("AnchorSlice converts a complete Solidity contract into a compact slice that retains, for every DASP "
-      "category, the regions able to host it, so that a downstream detector reads fewer tokens without losing "
-      "evidence. Fig. 1 places the slicer in the detection pipeline, Table I lists its anchors, and "
+    P("AnchorSlice is built from one artefact, the anchor set of each DASP category, and turns it into two "
+      "components a detector uses together: a static slicer that keeps, for every category, the regions able "
+      "to host it, so the detector reads far fewer tokens without losing evidence, and anchor-derived "
+      "decision rules that state which shapes count as an instance of each category in this corpus. The "
+      "slicer governs how much the detector reads and therefore what a query costs; the rules govern how it "
+      "judges what it reads and therefore what the query is worth; neither costs a model call. Fig. 1 places the slicer in the detection pipeline, Table I lists its anchors, and "
       "Algorithm 1 gives the procedure. This section first states the design principles, then describes the "
       "lexical anchors and the visibility gate, the extraction and merging of windows together with library "
       "collapse, and finally the rendering of the slice for the detector, illustrated in Fig. 2.", indent=False)
 
     WIDE_START()
-    FIGURE(FIG1, "**Fig. 1.**  The two arms of the experiment on 200 contracts. Arm A is ordinary practice: "
-                 "the complete source with a short instruction. Arm B inserts the three AnchorSlice stages "
-                 "S1–S3 and pairs the slice with the calibrated prompt. Detector and output schema are "
-                 "identical in both arms; per-contract cost is given beneath each arm.")
+    FIGURE(FIG1, "**Fig. 1.**  AnchorSlice and the practice it replaces. Arm A hands the detector a contract "
+                 "as it is. Arm B is AnchorSlice: one anchor set per DASP category drives two components, a "
+                 "static slicer that shrinks the input and anchor-derived decision rules that state what each "
+                 "category means in this corpus. Detector and output schema are identical in both arms.")
     S = ' · '
     TABLE('Table I.  Anchor Specification for the Eight DASP Categories', [
         ['Category', 'Anchor expressions', 'Gate', 'Retained'],
@@ -659,9 +664,9 @@ def build_content():
     ], [1250, 1450, 2031], ['left', 'left', 'left'])
     H2('Evaluation Protocol')
     P("Arm A is ordinary practice: the complete contract with a short instruction naming the eight "
-      "categories in one line each. Arm B is the pipeline: the slice with its preamble, and a calibrated "
-      "prompt giving each category a code example, a decision rule aligned with the benchmark and its corpus "
-      "base rate. Detector, effort, schema and contracts are identical, with one call each. Against "
+      "categories in one line each. Arm B is AnchorSlice with both components: the slice with its preamble, "
+      "and the anchor-derived decision rules, each category carrying a code example, a decision rule and its "
+      "corpus base rate. Detector, effort, schema and contracts are identical, with one call each. Against "
       "the DIVE labels we report label agreement, exact match, micro-averaged precision, recall and F1-score, "
       "and Cohen's kappa, with McNemar's exact test on the 1,600 paired cells, together with total tokens, "
       "wall-clock time and cost. Evidence retention, measured without the detector, is the share of "
@@ -734,9 +739,6 @@ def build_content():
     ], [1251, 520, 520, 520, 480, 480, 480, 480], ['left'] + ['right'] * 7, rule_before=(9,),
       note="DIVE+: reference positives; A: complete source with the simple prompt; B: AnchorSlice with the "
            "calibrated prompt; FP/FN: false positives and false negatives.")
-    FIGURE(os.path.join(HERE, 'fig3_resources.png'),
-           "**Fig. 3.**  Resource use and detection quality per contract. Tokens, cost and latency fall by "
-           "more than half while F1-score doubles.")
     H2('Discussion')
     P("Removing about 40% of each contract did not degrade detection and improved it on aggregate. Comments, "
       "licence headers and unmodified libraries carry no evidence a security judgement needs, and a shorter "

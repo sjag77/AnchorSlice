@@ -44,43 +44,63 @@ def arrow(ax, x1, y, x2, color=MUTE, lw=1.1):
                                  shrinkA=0, shrinkB=0))
 
 def figure_pipeline():
-    fig, ax = plt.subplots(figsize=(7.4, 2.75))
-    # a little slack on every side so box borders and edge labels are not clipped
-    ax.set_xlim(-0.025, 1.025); ax.set_ylim(-0.06, 1.04); ax.axis('off')
+    fig, ax = plt.subplots(figsize=(7.4, 3.6))
+    ax.set_xlim(-0.025, 1.025); ax.set_ylim(-0.10, 1.05); ax.axis('off')
 
-    # --- Arm A
-    ax.text(0.005, 0.95, 'Arm A · ordinary practice', fontsize=10, fontweight='bold', color=INK)
-    box(ax, 0.005, 0.66, 0.175, 0.20, '200 contracts\n2,311,110 chars', face='#f4f7f8')
-    arrow(ax, 0.185, 0.76, 0.655)
-    ax.text(0.42, 0.80, 'complete source · 100%', fontsize=9, style='italic',
-            color=MUTE, ha='center')
-    box(ax, 0.66, 0.66, 0.15, 0.20, 'detector\n(Opus 5)', face='#f4f7f8')
-    arrow(ax, 0.815, 0.76, 0.845)
-    box(ax, 0.85, 0.66, 0.145, 0.20, '8 DASP\nlabels', face='#f4f7f8')
-    ax.text(0.995, 0.60, '10,465 tokens · $0.089 · 20.8 s per contract',
+    # --- Arm A: the contract goes in whole
+    ax.text(0.005, 0.99, 'Arm A · a contract handed to the detector as it is',
+            fontsize=10, fontweight='bold', color=INK)
+    box(ax, 0.005, 0.78, 0.175, 0.16, '200 contracts\n2,311,110 chars', face='#f4f7f8')
+    arrow(ax, 0.185, 0.86, 0.655)
+    ax.text(0.42, 0.90, 'complete source · 100% · one-line category list', fontsize=9,
+            style='italic', color=MUTE, ha='center')
+    box(ax, 0.66, 0.78, 0.15, 0.16, 'detector\n(Opus 5)', face='#f4f7f8')
+    arrow(ax, 0.815, 0.86, 0.845)
+    box(ax, 0.85, 0.78, 0.145, 0.16, '8 DASP\nlabels', face='#f4f7f8')
+    ax.text(0.995, 0.735, '10,465 tokens · $0.089 · 20.8 s per contract · F1 0.342',
             fontsize=8.6, color=MUTE, ha='right')
 
-    ax.plot([0.005, 0.995], [0.50, 0.50], color=RULE, lw=0.8, ls=(0, (4, 3)))
+    ax.plot([0.005, 0.995], [0.69, 0.69], color=RULE, lw=0.8, ls=(0, (4, 3)))
 
-    # --- Arm B
-    ax.text(0.005, 0.40, 'Arm B · AnchorSlice pipeline', fontsize=10, fontweight='bold', color=SLICE)
-    box(ax, 0.005, 0.11, 0.175, 0.20, '200 contracts\n2,311,110 chars', face='#f4f7f8')
-    stages = [('S1 · strip\ncomments', 0.205), ('S2 · collapse\nlibrary code', 0.375),
-              ('S3 · anchor\nwindows + tags', 0.545)]
-    prev = 0.18
-    for label, x in stages:
-        arrow(ax, prev, 0.21, x, color=SLICE)
-        box(ax, x, 0.11, 0.155, 0.20, label, edge=SLICE, lw=1.3, face='white')
-        prev = x + 0.155
-    arrow(ax, prev, 0.21, 0.72, color=SLICE)
-    box(ax, 0.725, 0.11, 0.13, 0.20, 'detector\n(Opus 5)', face='#f4f7f8')
-    arrow(ax, 0.858, 0.21, 0.878)
-    box(ax, 0.88, 0.11, 0.115, 0.20, '8 DASP\nlabels', face='#f4f7f8')
+    # --- Arm B: AnchorSlice, two components built from one anchor set
+    ax.text(0.005, 0.625, 'Arm B · AnchorSlice', fontsize=10, fontweight='bold', color=SLICE)
+    ax.add_patch(FancyBboxPatch((0.20, 0.10), 0.505, 0.50,
+                                boxstyle='round,pad=0.012,rounding_size=0.015',
+                                linewidth=1.3, edgecolor=SLICE, facecolor='#f2f8fa', zorder=1))
+    ax.text(0.4525, 0.555, 'one anchor set per DASP category', fontsize=8.8, color=SLICE,
+            ha='center', style='italic', zorder=3)
 
-    ax.text(0.005, 0.02, '4,689 tokens · $0.032 · 8.4 s per contract',
-            fontsize=8.6, color=SLICE, ha='left', fontweight='bold')
-    ax.text(0.995, 0.02, '56.5% of characters kept · evidence retention 463/463',
-            fontsize=8.6, color=SLICE, ha='right', style='italic')
+    box(ax, 0.005, 0.29, 0.175, 0.16, '200 contracts\n2,311,110 chars', face='#f4f7f8')
+    arrow(ax, 0.185, 0.37, 0.215, color=SLICE)
+
+    # component 1: the slicer
+    ax.text(0.222, 0.495, 'Component 1 · static slicer', fontsize=8.8, color=INK,
+            fontweight='bold', zorder=3)
+    for label, x in [('S1 · strip\ncomments', 0.222), ('S2 · collapse\nlibrary code', 0.383),
+                     ('S3 · anchor\nwindows + tags', 0.544)]:
+        box(ax, x, 0.345, 0.148, 0.135, label, edge=SLICE, lw=1.1, face='white', fs=8.6)
+    arrow(ax, 0.372, 0.4125, 0.381, color=SLICE); arrow(ax, 0.533, 0.4125, 0.542, color=SLICE)
+    ax.text(0.222, 0.295, 'shrinks the input: 56.5% of characters, retention 463/463',
+            fontsize=8.4, color=SLICE, zorder=3)
+
+    # component 2: the decision rules
+    ax.text(0.222, 0.225, 'Component 2 · anchor-derived decision rules', fontsize=8.8,
+            color=INK, fontweight='bold', zorder=3)
+    box(ax, 0.222, 0.125, 0.47, 0.072,
+        'per category: example · decision rule · base rate',
+        edge=SLICE, lw=1.1, face='white', fs=8.4)
+
+    arrow(ax, 0.71, 0.37, 0.742, color=SLICE)
+    box(ax, 0.747, 0.29, 0.125, 0.16, 'detector\n(Opus 5)', face='#f4f7f8')
+    arrow(ax, 0.875, 0.37, 0.893)
+    box(ax, 0.895, 0.29, 0.10, 0.16, '8 DASP\nlabels', face='#f4f7f8')
+    ax.text(0.995, 0.235, '4,689 tokens · $0.032 · 8.4 s', fontsize=8.6, color=SLICE,
+            ha='right', fontweight='bold')
+    ax.text(0.995, 0.175, 'per contract · F1 0.693', fontsize=8.6, color=SLICE,
+            ha='right', fontweight='bold')
+    ax.text(0.005, -0.055,
+            'the slicer carries the token saving; the decision rules carry the detection quality',
+            fontsize=8.8, color=SLICE, ha='left', style='italic')
     save(fig, 'fig1_pipeline.png')
 
 # ------------------------------------------------------------------ Fig. 2
