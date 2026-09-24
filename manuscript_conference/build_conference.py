@@ -510,10 +510,10 @@ def build_content():
       "collapse, and finally the rendering of the slice for the detector, illustrated in Fig. 2.", indent=False)
 
     WIDE_START()
-    FIGURE(FIG1, "**Fig. 1.**  Vulnerability detection with and without AnchorSlice. Arm A passes the complete "
-                 "source to the detector; Arm B inserts stages S1–S3, annotated with the share of corpus "
-                 "characters retained after each. The detector, prompt and output schema are identical in "
-                 "both arms.")
+    FIGURE(FIG1, "**Fig. 1.**  The two arms of the experiment on 200 contracts. Arm A is ordinary practice: "
+                 "the complete source with a short instruction. Arm B inserts the three AnchorSlice stages "
+                 "S1–S3 and pairs the slice with the calibrated prompt. Detector and output schema are "
+                 "identical in both arms; per-contract cost is given beneath each arm.")
     S = ' · '
     TABLE('Table I.  Anchor Specification for the Eight DASP Categories', [
         ['Category', 'Anchor expressions', 'Gate', 'Retained'],
@@ -730,6 +730,9 @@ def build_content():
     ], [1251, 520, 520, 520, 480, 480, 480, 480], ['left'] + ['right'] * 7, rule_before=(9,),
       note="DIVE+: reference positives; A: complete source with the simple prompt; B: AnchorSlice with the "
            "calibrated prompt; FP/FN: false positives and false negatives.")
+    FIGURE(os.path.join(HERE, 'fig3_resources.png'),
+           "**Fig. 3.**  Resource use and detection quality per contract. Tokens, cost and latency fall by "
+           "more than half while F1-score doubles.")
     H2('Discussion')
     P("Removing about 40% of each contract did not degrade detection and improved it on aggregate. Comments, "
       "licence headers and unmodified libraries carry no evidence a security judgement needs, and a shorter "

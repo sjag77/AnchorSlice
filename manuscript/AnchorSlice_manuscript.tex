@@ -163,7 +163,7 @@ AnchorSlice turns a complete Solidity contract into a compact, annotated slice t
 \begin{figure*}[htbp]
     \centering
     \includegraphics[width=\linewidth, keepaspectratio]{fig1_pipeline.png}
-    \caption{Vulnerability detection with and without AnchorSlice. Arm~A passes the complete source to the detector; Arm~B inserts the three AnchorSlice stages S1--S3, annotated with the share of corpus characters retained after each. The detector (Claude Opus~5 in this study), its prompt, and its output schema are identical in both arms.}
+    \caption{The two arms of the experiment on 200 contracts. Arm~A is ordinary practice: the complete source is submitted with a short instruction. Arm~B inserts the three AnchorSlice stages S1--S3 and pairs the slice with the calibrated prompt. The detector, Claude Opus~5, and the output schema are identical in both arms; the per-contract cost of each arm is given beneath it.}
     \label{fig:pipeline}
 \end{figure*}
 
@@ -325,7 +325,7 @@ We report label agreement over all cells, Hamming loss, exact match at contract 
 AnchorSlice reduced the sample from 2,311,110 to 1,305,860 characters, or 56.5\% of the original. Evidence retention was 1.00 for every category: all 463 label-positive category instances kept at least one block tagged with that category, as summarised in Table~\ref{tab:anchors}. Reaching full retention required four guards that a smaller sample had not exercised: legacy contracts in which a function without a visibility keyword is public by default, function signatures spanning several lines, anonymous fallback functions, and minified sources in which an entire contract occupies one or two lines. A contract for which no candidate block can be isolated, or whose block headers would cost more than the removed lines save, is sent whole with comments stripped, which occurred for 43 of the 200 contracts. Decomposing the pipeline in Fig.~\ref{fig:pipeline} shows that comment removal and library collapse deliver most of the reduction, with the anchoring stage adding its block headers back. The slicer processes a contract in 7.6~ms on average and 17.5~ms at most, which is negligible beside the tens of seconds a detector call takes.
 
 \subsection{Token Consumption, Runtime and Cost}\label{subsec:cost}
-Table~\ref{tab:resources} reports resource use. The pipeline cut total token consumption from 2,092,914 to 937,754, a reduction of 55.2\%, and mean consumption per contract from 10,465 to 4,689 tokens. The contract text the detector must read, measured as the tokens written to the prompt cache, fell by 69.1\%. Wall-clock time fell from 4,151 to 1,673 seconds, or 59.7\%, and cost from \$17.75 to \$6.45, a reduction of 63.7\%: \$0.032 and 8.4 seconds per contract against \$0.089 and 20.8 seconds. Output tokens fell by 55.9\% as well, because given a compact, tagged input the detector writes shorter justifications. The calibrated prompt adds roughly 1,600 tokens per call, but it is cached across calls and is far smaller than what the slice removes from the contract itself.
+Table~\ref{tab:resources} and Fig.~\ref{fig:resources} report resource use. The pipeline cut total token consumption from 2,092,914 to 937,754, a reduction of 55.2\%, and mean consumption per contract from 10,465 to 4,689 tokens. The contract text the detector must read, measured as the tokens written to the prompt cache, fell by 69.1\%. Wall-clock time fell from 4,151 to 1,673 seconds, or 59.7\%, and cost from \$17.75 to \$6.45, a reduction of 63.7\%: \$0.032 and 8.4 seconds per contract against \$0.089 and 20.8 seconds. Output tokens fell by 55.9\% as well, because given a compact, tagged input the detector writes shorter justifications. The calibrated prompt adds roughly 1,600 tokens per call, but it is cached across calls and is far smaller than what the slice removes from the contract itself.
 
 \begin{table}[t]
 \centering
@@ -349,6 +349,13 @@ Cost (USD) & 17.75 & 6.45 & $-$63.7\% \\
 \hline
 \end{tabular}
 \end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth, keepaspectratio]{fig3_resources.png}
+    \caption{Resource use and detection quality per contract, Arm~A against Arm~B. Token consumption, cost and latency fall by more than half while F1-score doubles.}
+    \label{fig:resources}
+\end{figure}
 
 \subsection{Detection Effectiveness}\label{subsec:effectiveness}
 Detection quality improved on every aggregate measure, as Table~\ref{tab:effectiveness} shows. Recall rose from 0.322 to 0.775 and precision from 0.365 to 0.627, so the additional detections were not obtained by indiscriminate over-reporting. F1-score improved from 0.342 to 0.693, Cohen's kappa from 0.097 to 0.549 and label agreement from 0.642 to 0.801. Twenty-eight contracts were classified correctly in all eight categories under the pipeline, against five under the practical baseline.
@@ -382,7 +389,7 @@ False negatives & 314 & 104 & $-$210 \\
 \end{table}
 
 \subsection{Per-Category Behaviour}\label{subsec:percat}
-Table~\ref{tab:percat} reports every category, and Fig.~\ref{fig:percat} shows the three that improved. Access control gained 14.0 percentage points, by far the largest movement, and is also the category in which the baseline was weakest, marking only 6 of 39 positives. The \texttt{MUTFN} anchor tags precisely the state-mutating entry points where a missing modifier would live, and under slicing the detector identified 11 more, cutting false negatives from 33 to 24 at a cost of two false positives. Front running gained 6.0 points and eliminated both of its false negatives, and reentrancy gained 4.0 points while reducing false negatives from four to one. Unchecked return values and time manipulation held their agreement, and the former halved its false negatives, so six of the eight categories either improved or held. Arithmetic and bad randomness each lost 2.0 points, and DoS lost 14.0 points, which we attribute to an over-broad anchor discussed in Section~\ref{sec:limit}.
+Table~\ref{tab:percat} and Fig.~\ref{fig:percat} report every category. Access control gained 14.0 percentage points, by far the largest movement, and is also the category in which the baseline was weakest, marking only 6 of 39 positives. The \texttt{MUTFN} anchor tags precisely the state-mutating entry points where a missing modifier would live, and under slicing the detector identified 11 more, cutting false negatives from 33 to 24 at a cost of two false positives. Front running gained 6.0 points and eliminated both of its false negatives, and reentrancy gained 4.0 points while reducing false negatives from four to one. Unchecked return values and time manipulation held their agreement, and the former halved its false negatives, so six of the eight categories either improved or held. Arithmetic and bad randomness each lost 2.0 points, and DoS lost 14.0 points, which we attribute to an over-broad anchor discussed in Section~\ref{sec:limit}.
 
 \begin{table*}[htbp]
 \centering
@@ -412,7 +419,7 @@ Time manipulation & 42 & 0.870 & 0.730 & 0.67 & 0.58 & 15 & 4 \\
 \begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth, keepaspectratio]{fig2_per_category.png}
-    \caption{Label agreement with and without slicing for the three categories in which agreement improved. Table~\ref{tab:percat} reports all eight categories.}
+    \caption{F1-score per DASP category for the two arms, ordered by the size of the change. Six categories improve under the pipeline; time manipulation and front running, drawn in the contrasting colour, regress.}
     \label{fig:percat}
 \end{figure}
 
