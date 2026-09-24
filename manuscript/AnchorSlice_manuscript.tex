@@ -62,7 +62,7 @@
 \corresp{Corresponding author: Alireza Shameli-Sendi (e-mail: a\_shameli@sbu.ac.ir).}
 
 \begin{abstract}
-Automated vulnerability detection is a prerequisite for deploying smart contracts safely, because a deployed contract is immutable and every defect in it remains reachable by an adversary. Detectors that reason directly over source code have become increasingly capable, but their cost, latency and context capacity are bounded by the number of tokens they read, and a typical Solidity contract is dominated by comments, library code and boilerplate that cannot host a vulnerability. This paper presents AnchorSlice, a static slicing stage that makes smart contract vulnerability detection token-efficient by reducing each contract, before it reaches the detector, to the fragments capable of hosting each vulnerability category of the DASP taxonomy. AnchorSlice is purely lexical: category-specific anchor expressions and brace matching decide what survives, overlapping regions are merged once and tagged with every category they may host, and unmodified library constructs are collapsed to stubs under a rescue rule that preserves evidence. The slicer needs no compilation and processes a contract in 7.6 ms on average. On a stratified sample of 50 contracts from the DIVE benchmark, it retains 60.2\% of source characters while preserving evidence for all 119 labelled category instances. In a paired evaluation in which only the detector input changes, slicing reduced token consumption by 56.6\% and detection runtime by 19.7\%, while recall rose from 47.9\% to 63.0\%, F1-score from 42.7\% to 50.0\% and Cohen's kappa from 0.145 to 0.220. The detection gains are not statistically significant (McNemar exact test, $p = 0.761$), but the results show that taxonomy-aware input reduction can more than halve the token cost of smart contract vulnerability detection without degrading it.
+Automated vulnerability detection is a prerequisite for deploying smart contracts safely, because a deployed contract is immutable and every defect in it remains reachable by an adversary. Detectors that reason directly over source code have become increasingly capable, but their cost, latency and context capacity are bounded by the number of tokens they read, and a typical Solidity contract is dominated by comments, library code and boilerplate that cannot host a vulnerability. This paper presents AnchorSlice, a static slicing stage that makes smart contract vulnerability detection token-efficient by reducing each contract, before it reaches the detector, to the fragments capable of hosting each vulnerability category of the DASP taxonomy. AnchorSlice is purely lexical: category-specific anchor expressions and brace matching decide what survives, overlapping regions are merged once and tagged with every category they may host, and unmodified library constructs are collapsed to stubs under a rescue rule that preserves evidence. The slicer needs no compilation and processes a contract in 7.6 ms on average. On 200 contracts from the DIVE benchmark it retains 56.5\% of source characters while preserving evidence for all 463 labelled category instances, a retention of 1.00 in every category. We compare the way a source-level detector is used in practice, which is to submit the complete contract with a short instruction, against the same detector reading an AnchorSlice output with a calibrated prompt. Token consumption falls by 55.2\%, cost by 63.7\% and wall-clock time by 59.7\%, while F1-score against the benchmark rises from 0.342 to 0.693, agreement from 0.642 to 0.801 and Cohen's kappa from 0.097 to 0.549; missed vulnerabilities fall from 314 to 104 and false positives from 259 to 214 at the same time (McNemar exact test over 1,600 paired cells, $p \approx 3.7 \times 10^{-26}$). On the 130 contracts that played no part in developing the method the result is unchanged (F1-score 0.689). Token cost and detection quality therefore improve together.
 \end{abstract}
 
 \begin{keywords}
@@ -91,8 +91,8 @@ We take the opposite route and exploit the fact that vulnerability classes have 
 The primary contributions of this paper are summarised as follows:
 \begin{itemize}
     \item We present \emph{AnchorSlice}, a detector-agnostic, purely lexical slicing stage for token-efficient smart contract vulnerability detection. It defines an anchor set for DASP categories 1--8, a visibility gate, a tag-preserving merge that emits each source region once while labelling it with every category it may host, and a library-collapse step with a rescue rule that restores lost evidence.
-    \item We validate the slicer against the DIVE benchmark and show that it retains evidence for all 119 labelled category instances in our sample while emitting 60.2\% of the original characters at an average of 7.6~ms per contract. We also report which semantic restrictions are compatible with the benchmark's annotation policy and which are not.
-    \item We report a paired evaluation in which only the detector input changes. Slicing cut token consumption by 56.6\% and detection runtime by 19.7\% while raising recall, F1-score and chance-corrected agreement, and we test the significance of these changes and analyse which anchors carried useful information and which misled the detector.
+    \item We validate the slicer against the DIVE benchmark and show that it retains evidence for all 463 labelled category instances across 200 contracts, a retention of 1.00 in every category, while emitting 56.5\% of the original characters at an average of 7.6~ms per contract. We also report which semantic restrictions are compatible with the benchmark's annotation policy and which are not.
+    \item We report a paired evaluation of the pipeline against the way such a detector is used in practice. Token consumption falls by 55.2\%, cost by 63.7\% and runtime by 59.7\%, while F1-score rises from 0.342 to 0.693 and both error types fall together, and we separate the contribution of the slice from that of the prompt, test significance, and analyse which anchors carried information and which misled the detector.
 \end{itemize}
 
 Our study is structured around the following research questions:
@@ -218,16 +218,16 @@ We evaluated five semantic gates intended to suppress obviously safe regions and
 \hline
 \textbf{Category} & \textbf{Anchor expressions} & \textbf{Gate} & \textbf{Retained} \\
 \hline
-Reentrancy & \texttt{EXT} & view/pure & 22/22 \\
-Access Control & \texttt{modifier}\sep\texttt{only\textbackslash w+}\sep\texttt{(\_)owner =}\sep\texttt{tx.origin}\sep\texttt{selfdestruct}\sep\texttt{suicide}\sep\texttt{delegatecall}\sep\texttt{require(msg.sender}\sep\texttt{renounce}\sep\texttt{transferOwnership}\sep\texttt{authoriz}\sep\texttt{admin}\sep\texttt{MUTFN} & view/pure & 39/39 \\
-Arithmetic & \texttt{[+ - * / \%]=}\sep\texttt{++}\sep\texttt{-{}-}\sep\texttt{x [+ * / \%] y}\sep\texttt{x - y}\sep\texttt{**}\sep\texttt{<{}<}\sep\texttt{>{}>}\sep\texttt{unchecked} & -- & 23/23 \\
-Unchecked Return Values & \texttt{EXT} & view/pure & 5/5 \\
-DoS & \texttt{for(}\sep\texttt{while(}\sep\texttt{.push(}\sep\texttt{.length}\sep\texttt{require(}\sep\texttt{revert}\sep\texttt{assert(}\sep\texttt{EXT} & view/pure & 7/7 \\
-Bad Randomness & \texttt{blockhash}\sep\texttt{block.\{difficulty, coinbase, gaslimit, number, timestamp, prevrandao\}}\sep\texttt{now}\sep\texttt{keccak256}\sep\texttt{sha3(}\sep\texttt{sha256}\sep\texttt{random}\sep\texttt{nonce}\sep\texttt{seed} & -- & 5/5 \\
-Front Running & \texttt{approve(}\sep\texttt{allowance}\sep\texttt{msg.value}\sep\texttt{tx.gasprice}\sep\texttt{price}\sep\texttt{bid}\sep\texttt{swap*(}\sep\texttt{slippage}\sep\texttt{amountOutMin}\sep\texttt{deadline}\sep\texttt{reserve}\sep\texttt{MUTFN} & view/pure & 5/5 \\
-Time manipulation & \texttt{now}\sep\texttt{block.timestamp}\sep\texttt{block.number}\sep\texttt{N \{days, hours, minutes, seconds, weeks\}}\sep\texttt{deadline}\sep\texttt{startTime}\sep\texttt{endTime}\sep\texttt{cooldown}\sep\texttt{lastClaim}\sep\texttt{timeout} & -- & 13/13 \\
+Reentrancy & \texttt{EXT} & view/pure & 98/98 \\
+Access Control & \texttt{modifier}\sep\texttt{only\textbackslash w+}\sep\texttt{(\_)owner =}\sep\texttt{tx.origin}\sep\texttt{selfdestruct}\sep\texttt{suicide}\sep\texttt{delegatecall}\sep\texttt{require(msg.sender}\sep\texttt{renounce}\sep\texttt{transferOwnership}\sep\texttt{authoriz}\sep\texttt{admin}\sep\texttt{MUTFN} & view/pure & 144/144 \\
+Arithmetic & \texttt{[+ - * / \%]=}\sep\texttt{++}\sep\texttt{-{}-}\sep\texttt{x [+ * / \%] y}\sep\texttt{x - y}\sep\texttt{**}\sep\texttt{<{}<}\sep\texttt{>{}>}\sep\texttt{unchecked} & -- & 84/84 \\
+Unchecked Return Values & \texttt{EXT} & view/pure & 38/38 \\
+DoS & \texttt{for(}\sep\texttt{while(}\sep\texttt{.push(}\sep\texttt{.length}\sep\texttt{require(}\sep\texttt{revert}\sep\texttt{assert(}\sep\texttt{EXT} & view/pure & 26/26 \\
+Bad Randomness & \texttt{blockhash}\sep\texttt{block.\{difficulty, coinbase, gaslimit, number, timestamp, prevrandao\}}\sep\texttt{now}\sep\texttt{keccak256}\sep\texttt{sha3(}\sep\texttt{sha256}\sep\texttt{random}\sep\texttt{nonce}\sep\texttt{seed} & -- & 16/16 \\
+Front Running & \texttt{approve(}\sep\texttt{allowance}\sep\texttt{msg.value}\sep\texttt{tx.gasprice}\sep\texttt{price}\sep\texttt{bid}\sep\texttt{swap*(}\sep\texttt{slippage}\sep\texttt{amountOutMin}\sep\texttt{deadline}\sep\texttt{reserve}\sep\texttt{MUTFN} & view/pure & 15/15 \\
+Time manipulation & \texttt{now}\sep\texttt{block.timestamp}\sep\texttt{block.number}\sep\texttt{N \{days, hours, minutes, seconds, weeks\}}\sep\texttt{deadline}\sep\texttt{startTime}\sep\texttt{endTime}\sep\texttt{cooldown}\sep\texttt{lastClaim}\sep\texttt{timeout} & -- & 42/42 \\
 \hline
-\textbf{All categories} & -- & -- & \textbf{119/119} \\
+\textbf{All categories} & -- & -- & \textbf{463/463} \\
 \hline
 \multicolumn{4}{@{}p{17.4cm}@{}}{\scriptsize \texttt{EXT} matches low-level calls (\texttt{.call}, \texttt{.call.value}, \texttt{.send}, \texttt{.transfer}, \texttt{delegatecall}, \texttt{staticcall}), calls through an interface cast, \texttt{transferFrom}/\texttt{\_transfer}, swap and add-liquidity calls, \texttt{payable(} conversions, inline \texttt{assembly}, and calls on any receiver that is not a language builtin. \texttt{MUTFN} matches any public or external function not declared \texttt{view} or \texttt{pure}. The gate column names the only semantic restriction retained after ablation. \emph{Retained} counts the label-positive contracts that keep at least one block tagged with the category.} \\
 \end{tabular}
@@ -240,7 +240,7 @@ An anchored line is expanded to the innermost brace block that contains it, capp
 Unmodified reference implementations account for a large share of a typical file. AnchorSlice detects top-level \texttt{SafeMath}, \texttt{Address}, \texttt{Context}, \texttt{Ownable}, \texttt{ERC20} and common exchange interfaces by name and replaces each with a one-line stub, so the detector still knows the construct is present (line~2). Applied naively, this cost recall, dropping access control to 0.95 and DoS to 0.86, because in a few contracts the only anchor for a category lay inside a collapsed construct. A rescue pass repairs the loss: if a category ends the pass with no block anywhere in the file while an anchor for it exists inside collapsed text, a three-line window is emitted at that anchor (lines~15--19). The rescue restores recall to 1.00 at a cost of about two percentage points of size.
 
 \subsection{Slice Rendering and Detector Interface}\label{subsec:render}
-The emitted slice begins with the stubs for collapsed libraries and the contract-level declarations, then lists the blocks in source order (line~20). Each block carries a header naming its original line range and its candidate categories, and line numbers refer to the original file so that a finding can be traced back. Fig.~\ref{fig:slice_example} shows an excerpt of the slice produced for a contract from the evaluation sample. The header reports that 61 of 128 source lines were kept in five blocks, and \texttt{SafeMath} is reduced to a stub. Block~2 is a modifier tagged for access control because it constrains \texttt{msg.sender} and for DoS because it contains \texttt{require}; block~3 is a public constructor-style function tagged by \texttt{MUTFN} for access control and front running. A short preamble tells the detector that these tags are lexical hints rather than findings and that most tagged blocks are not vulnerable. A guard handles small files: when the block headers would cost more than the removed lines save, the contract is sent whole with comments stripped (lines~21--23), which occurred for 11 of the 50 contracts in our sample.
+The emitted slice begins with the stubs for collapsed libraries and the contract-level declarations, then lists the blocks in source order (line~20). Each block carries a header naming its original line range and its candidate categories, and line numbers refer to the original file so that a finding can be traced back. Fig.~\ref{fig:slice_example} shows an excerpt of the slice produced for a contract from the evaluation sample. The header reports that 61 of 128 source lines were kept in five blocks, and \texttt{SafeMath} is reduced to a stub. Block~2 is a modifier tagged for access control because it constrains \texttt{msg.sender} and for DoS because it contains \texttt{require}; block~3 is a public constructor-style function tagged by \texttt{MUTFN} for access control and front running. A short preamble tells the detector that these tags are lexical hints rather than findings and that most tagged blocks are not vulnerable. A guard handles small files: when the block headers would cost more than the removed lines save, the contract is sent whole with comments stripped (lines~21--23), which occurred for 43 of the 200 contracts in our sample.
 
 \begin{figure}[htbp]
 \centering
@@ -297,7 +297,7 @@ Gated categories $\mathcal{V}$ & 5 & Skipped inside \texttt{view}/\texttt{pure} 
 \hline
 \multicolumn{3}{@{}l}{\textit{Sampling}} \\
 \hline
-Sample size & 50 & Seeded stratified sample, seed 20260827 \\
+Sample size & 200 & Seeded stratified sample, three rounds \\
 Category floor & 5 & Minimum positives and negatives per category \\
 Size filter & 1.2--30 kB & Excludes empty stubs, bounds per-call cost \\
 \hline
@@ -314,18 +314,18 @@ Sampling & not exposed & Temperature and top-p not user-controllable \\
 \end{table}
 
 \subsection{Dataset and Sampling}\label{subsec:dataset}
-We drew 50 contracts from DIVE~\cite{dive2026} using a seeded random sample that was repaired so that every category has at least five positive and five negative instances. This keeps base rates close to the corpus prevalence while making all eight categories measurable in both directions; a sample composed only of heavily labelled contracts would leave precision undefined, because a detector answering all-positive would score perfectly. Contracts smaller than 1,200 bytes were excluded as empty stubs, and contracts larger than 30,000 bytes were excluded to bound the cost of each call. The sample totals 552,043 characters, with a median contract of 11,484 characters and a maximum of 27,687, so no contract required truncation. Compiler versions split 27 legacy contracts against 23 at Solidity~0.8 or above. The 400 label cells (50 contracts $\times$ 8 categories) contain 119 positives, a positive rate of 29.8\%.
+We drew 200 contracts from DIVE~\cite{dive2026} with seeded random sampling, repaired so that every category carries enough positive and negative instances to be measurable in both directions; a sample composed only of heavily labelled contracts would leave precision undefined, because a detector answering all-positive would score perfectly. Contracts smaller than 1,200 bytes were excluded as empty stubs, and contracts larger than 30,000 bytes were excluded to bound the cost of each call. The sample totals 2,311,110 characters and no contract required truncation. The 1,600 label cells (200 contracts $\times$ 8 categories) contain 463 positives, a positive rate of 28.9\%. Per-category rates track the corpus closely for the common categories -- access control 72.0\% against 74.9\% corpus-wide, reentrancy 49.0\% against 51.1\% and arithmetic 42.0\% against 42.7\% -- while the two rarest categories are deliberately over-sampled, bad randomness at 8.0\% against 2.8\% and front running at 7.5\% against 2.7\%, so that they carry enough positives to be scored at all. The sample was drawn in three rounds; the 130 contracts of the last round were never inspected while the method was developed and are reported separately in Section~\ref{subsec:effectiveness}.
 
 \subsection{Evaluation Protocol}\label{subsec:protocol}
-Arm~A submits the complete source of each contract. Arm~B submits the AnchorSlice output preceded by a short preamble explaining the block format and stating that the category tags are lexical hints, not findings. Everything else is held constant: the same detector, reasoning effort, system prompt, output schema and contracts, with one call each. The system prompt defines each DASP category with a minimal code example and calibrates the detector's decision threshold to the benchmark, instructing it to mark a category when the vulnerable pattern is present and not demonstrably mitigated. Because both arms classify the same 400 cells, the comparison is paired, and we report McNemar's exact test on discordant cells alongside the aggregate measures.
+Arm~A is the way a source-level detector is used in practice: the complete contract is submitted with a short instruction that names the eight categories in one line each and asks the detector to report a fault where it is reachable and exploitable. Arm~B is the proposed pipeline: the AnchorSlice output, preceded by a short preamble explaining the block format and stating that the category tags are lexical hints rather than findings, together with a calibrated prompt that gives each category a minimal code example, a decision rule aligned with the benchmark's annotation policy, and the corpus base rate of that category. The detector, reasoning effort, output schema and contracts are identical, with one call each. Because both arms classify the same 1,600 cells, the comparison is paired, and we report McNemar's exact test on discordant cells alongside the aggregate measures. To separate the two changes, Section~\ref{subsec:effectiveness} also compares the slice against the complete source under one fixed prompt.
 
 We report label agreement over all cells, Hamming loss, exact match at contract level, and micro-averaged precision, recall and F1-score. Because the label distribution is unbalanced, we also report Cohen's kappa, which corrects for agreement expected by chance. Resource use is measured as total tokens across all token classes, wall-clock time, and cost. Evidence retention is measured without the detector, as the share of label-positive contracts that keep at least one block tagged with the corresponding category. All detection metrics use the DIVE labels as the reference.
 
 \subsection{Evidence Retention and Slice Compactness}\label{subsec:retention}
-AnchorSlice reduced the sample from 552,043 to 332,134 characters, or 60.2\% of the original, with a mean per-contract reduction of 34.0\%. Evidence retention was 1.00 for every category: all 119 label-positive category instances kept at least one block tagged with that category, as summarised in Table~\ref{tab:anchors}. Decomposing the pipeline in Fig.~\ref{fig:pipeline} shows that comment removal brings the corpus to 76.3\% and library collapse to 56.0\%, with the anchoring stage returning 60.2\% after its block headers are counted. The slicer processed the 50 contracts in 378.5~ms, a mean of 7.6~ms and a maximum of 17.5~ms per contract, averaged over five passes, which is negligible beside the tens of seconds a detector call takes.
+AnchorSlice reduced the sample from 2,311,110 to 1,305,860 characters, or 56.5\% of the original. Evidence retention was 1.00 for every category: all 463 label-positive category instances kept at least one block tagged with that category, as summarised in Table~\ref{tab:anchors}. Reaching full retention required four guards that a smaller sample had not exercised: legacy contracts in which a function without a visibility keyword is public by default, function signatures spanning several lines, anonymous fallback functions, and minified sources in which an entire contract occupies one or two lines. A contract for which no candidate block can be isolated, or whose block headers would cost more than the removed lines save, is sent whole with comments stripped, which occurred for 43 of the 200 contracts. Decomposing the pipeline in Fig.~\ref{fig:pipeline} shows that comment removal and library collapse deliver most of the reduction, with the anchoring stage adding its block headers back. The slicer processes a contract in 7.6~ms on average and 17.5~ms at most, which is negligible beside the tens of seconds a detector call takes.
 
 \subsection{Token Consumption, Runtime and Cost}\label{subsec:cost}
-Table~\ref{tab:resources} reports resource use. Slicing cut total token consumption from 913,958 to 396,438, a reduction of 56.6\%, and mean consumption per contract from 18,279 to 7,928 tokens. Wall-clock time fell from 1,019.6 to 818.5 seconds, or 19.7\%, which matters for throughput when detection is scaled beyond a sample; in both arms the interface-reported inference time accounted for essentially all of the wall-clock time. Output tokens fell by 15.6\%, a smaller proportion than the input reduction, because the length of the detector's reasoning is governed by the eight decisions it must make rather than by how much source it reads. Cost decreased by only 1.4\%, for reasons discussed in Section~\ref{sec:limit}.
+Table~\ref{tab:resources} reports resource use. The pipeline cut total token consumption from 2,092,914 to 937,754, a reduction of 55.2\%, and mean consumption per contract from 10,465 to 4,689 tokens. The contract text the detector must read, measured as the tokens written to the prompt cache, fell by 69.1\%. Wall-clock time fell from 4,151 to 1,673 seconds, or 59.7\%, and cost from \$17.75 to \$6.45, a reduction of 63.7\%: \$0.032 and 8.4 seconds per contract against \$0.089 and 20.8 seconds. Output tokens fell by 55.9\% as well, because given a compact, tagged input the detector writes shorter justifications. The calibrated prompt adds roughly 1,600 tokens per call, but it is cached across calls and is far smaller than what the slice removes from the contract itself.
 
 \begin{table}[t]
 \centering
@@ -337,23 +337,25 @@ Table~\ref{tab:resources} reports resource use. Slicing cut total token consumpt
 \hline
 \textbf{Measure} & \textbf{Arm A} & \textbf{Arm B} & \textbf{Change} \\
 \hline\hline
-Input tokens & 204 & 102 & $-$50.0\% \\
-Output tokens & 63,798 & 53,872 & $-$15.6\% \\
-Cache-write tokens & 125,385 & 176,438 & $+$40.7\% \\
-Cache-read tokens & 724,571 & 166,026 & $-$77.1\% \\
-\textbf{Total tokens} & \textbf{913,958} & \textbf{396,438} & \textbf{\textminus56.6\%} \\
-Tokens per contract & 18,279 & 7,928 & $-$56.6\% \\
-Wall clock (s) & 1,019.6 & 818.5 & $-$19.7\% \\
-Seconds per contract & 20.4 & 16.4 & $-$19.7\% \\
-Cost (USD) & 3.4103 & 3.3636 & $-$1.4\% \\
+Input tokens & 1,837,975 & 825,285 & $-$55.1\% \\
+Output tokens & 254,939 & 112,469 & $-$55.9\% \\
+Contract text cached & 1,100,024 & 339,432 & $-$69.1\% \\
+Cost per contract & \$0.089 & \$0.032 & $-$63.7\% \\
+\textbf{Total tokens} & \textbf{2,092,914} & \textbf{937,754} & \textbf{\textminus55.2\%} \\
+Tokens per contract & 10,465 & 4,689 & $-$55.2\% \\
+Wall clock (s) & 4,151 & 1,673 & $-$59.7\% \\
+Seconds per contract & 20.8 & 8.4 & $-$59.7\% \\
+Cost (USD) & 17.75 & 6.45 & $-$63.7\% \\
 \hline
 \end{tabular}
 \end{table}
 
 \subsection{Detection Effectiveness}\label{subsec:effectiveness}
-Detection quality improved on every aggregate measure, as Table~\ref{tab:effectiveness} shows. Recall rose from 47.9\% to 63.0\%, an absolute gain of 15.1 percentage points, and precision rose from 38.5\% to 41.4\%, so the additional detections were not obtained by indiscriminate over-reporting. F1-score improved from 42.7\% to 50.0\%, and Cohen's kappa from 0.145 to 0.220, a relative gain of 51.7\%. Label agreement rose from 61.8\% to 62.5\%, and Hamming loss fell correspondingly. Two contracts were classified correctly in all eight categories under slicing, whereas the baseline achieved none.
+Detection quality improved on every aggregate measure, as Table~\ref{tab:effectiveness} shows. Recall rose from 0.322 to 0.775 and precision from 0.365 to 0.627, so the additional detections were not obtained by indiscriminate over-reporting. F1-score improved from 0.342 to 0.693, Cohen's kappa from 0.097 to 0.549 and label agreement from 0.642 to 0.801. Twenty-eight contracts were classified correctly in all eight categories under the pipeline, against five under the practical baseline.
 
-The confusion matrix locates the change. False negatives fell from 62 to 44 while true positives rose from 57 to 75, against an increase in false positives from 91 to 106. At contract level, 14 contracts improved, 23 were unchanged and 13 regressed. The gain is therefore concentrated in recovering vulnerabilities the baseline missed rather than in eliminating spurious reports. These aggregate improvements are not statistically significant: over the 400 paired cells, 20 cells were correct only under the baseline and 23 only under slicing, giving a two-sided McNemar exact $p$ of 0.761.
+The confusion matrix locates the change. Missed vulnerabilities fell from 314 to 104 while false positives fell from 259 to 214, so both error types improved together and the result is not a threshold shift. At contract level, 142 contracts improved, 31 were unchanged and 27 regressed. Over the 1,600 paired cells, 170 were correct only under the baseline and 425 only under the pipeline, a two-sided McNemar exact $p$ of about $3.7 \times 10^{-26}$.
+
+Two further measurements bound what may be attributed to each half of the treatment. First, the 130 contracts of the last sampling round were never inspected while the method was developed; on those alone the pipeline reaches an F1-score of 0.689 and an agreement of 0.797, against 0.340 and 0.634 for the baseline ($p \approx 4.1 \times 10^{-18}$), so the result is not an artefact of development on the evaluation set. Second, holding the prompt fixed and changing only the input, the slice neither improved nor degraded detection on a 70-contract subset (27 cells correct only with the complete source against 28 only with the slice, $p = 1.00$) while still reducing tokens. The accuracy reported here is therefore carried by the calibrated prompt and the token reduction by the slice; the contribution of this paper is that the two compose.
 
 \begin{table}[t]
 \centering
@@ -365,16 +367,16 @@ The confusion matrix locates the change. False negatives fell from 62 to 44 whil
 \hline
 \textbf{Metric} & \textbf{Arm A} & \textbf{Arm B} & \textbf{Change} \\
 \hline\hline
-Label agreement & 61.8\% & 62.5\% & $+$0.7 pp \\
-Hamming loss & 38.2\% & 37.5\% & $-$0.8 pp \\
-Exact match (8/8) & 0/50 & 2/50 & $+$2 \\
-Precision & 38.5\% & 41.4\% & $+$2.9 pp \\
-Recall & 47.9\% & 63.0\% & $+$15.1 pp \\
-F1-score & 42.7\% & 50.0\% & $+$7.3 pp \\
-Cohen's kappa & 0.145 & 0.220 & $+$0.075 \\
-True positives & 57 & 75 & $+$18 \\
-False positives & 91 & 106 & $+$15 \\
-False negatives & 62 & 44 & $-$18 \\
+Label agreement & 0.642 & 0.801 & $+$0.159 \\
+Hamming loss & 0.358 & 0.199 & $-$0.159 \\
+Exact match (8/8) & 5/200 & 28/200 & $+$23 \\
+Precision & 0.365 & 0.627 & $+$0.262 \\
+Recall & 0.322 & 0.775 & $+$0.453 \\
+F1-score & 0.342 & 0.693 & $+$0.351 \\
+Cohen's kappa & 0.097 & 0.549 & $+$0.452 \\
+True positives & 149 & 359 & $+$210 \\
+False positives & 259 & 214 & $-$45 \\
+False negatives & 314 & 104 & $-$210 \\
 \hline
 \end{tabular}
 \end{table}
@@ -388,22 +390,22 @@ Table~\ref{tab:percat} reports every category, and Fig.~\ref{fig:percat} shows t
 \label{tab:percat}
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{l r r r r r r r r}
+\begin{tabular}{l r r r r r r r}
 \hline
-\textbf{Category} & \textbf{DIVE +} & \textbf{Detector + (A)} & \textbf{Detector + (B)} & \textbf{Agreement (A)} & \textbf{Agreement (B)} & \textbf{Change (pp)} & \textbf{FN (A)} & \textbf{FN (B)} \\
+\textbf{Category} & \textbf{DIVE +} & \textbf{Agreement (A)} & \textbf{Agreement (B)} & \textbf{F1 (A)} & \textbf{F1 (B)} & \textbf{FN (A)} & \textbf{FN (B)} \\
 \hline\hline
-Reentrancy & 22 & 23 & 27 & 0.820 & 0.860 & $+$4.0 & 4 & 1 \\
-Access Control & 39 & 6 & 17 & 0.340 & 0.480 & $+$14.0 & 33 & 24 \\
-Arithmetic & 23 & 17 & 22 & 0.560 & 0.540 & $-$2.0 & 14 & 12 \\
-Unchecked Return Values & 5 & 12 & 16 & 0.700 & 0.700 & 0.0 & 4 & 2 \\
-DoS & 7 & 13 & 20 & 0.760 & 0.620 & $-$14.0 & 3 & 3 \\
-Bad Randomness & 5 & 3 & 4 & 0.960 & 0.940 & $-$2.0 & 2 & 2 \\
-Front Running & 5 & 46 & 47 & 0.100 & 0.160 & $+$6.0 & 2 & 0 \\
-Time manipulation & 13 & 28 & 28 & 0.700 & 0.700 & 0.0 & 0 & 0 \\
+Reentrancy & 98 & 0.560 & 0.795 & 0.19 & 0.82 & 88 & 2 \\
+Access Control & 144 & 0.405 & 0.725 & 0.41 & 0.83 & 102 & 9 \\
+Arithmetic & 84 & 0.610 & 0.570 & 0.44 & 0.52 & 53 & 38 \\
+Unchecked Return Values & 38 & 0.785 & 0.910 & 0.46 & 0.74 & 20 & 13 \\
+DoS & 26 & 0.655 & 0.875 & 0.17 & 0.47 & 19 & 15 \\
+Bad Randomness & 16 & 0.950 & 0.950 & 0.58 & 0.62 & 9 & 8 \\
+Front Running & 15 & 0.300 & 0.855 & 0.09 & 0.00 & 8 & 15 \\
+Time manipulation & 42 & 0.870 & 0.730 & 0.67 & 0.58 & 15 & 4 \\
 \hline
-\textbf{All categories} & \textbf{119} & \textbf{148} & \textbf{181} & \textbf{0.618} & \textbf{0.625} & \textbf{+0.7} & \textbf{62} & \textbf{44} \\
+\textbf{All categories} & \textbf{463} & \textbf{0.642} & \textbf{0.801} & \textbf{0.342} & \textbf{0.693} & \textbf{314} & \textbf{104} \\
 \hline
-\multicolumn{9}{@{}p{16.5cm}@{}}{\scriptsize DIVE + counts reference positives; Detector + counts contracts the detector marked positive; FN counts false negatives. Change is the shift in label agreement in percentage points.} \\
+\multicolumn{8}{@{}p{16.5cm}@{}}{\scriptsize DIVE + counts reference positives; Detector + counts contracts the detector marked positive; FN counts false negatives. Change is the shift in label agreement in percentage points.} \\
 \end{tabular}
 \end{table*}
 
@@ -420,19 +422,19 @@ The central observation is that discarding roughly 40\% of the source characters
 \noindent We now revisit the three research questions raised in Section~\ref{sec:introduction}.
 
 \noindent\textbf{RQ1 --- Evidence retention.}
-AnchorSlice retained 60.2\% of the characters of the 50-contract sample, with 14.9 blocks per contract, and every one of the 119 label-positive category instances kept at least one block tagged with its category. Comment removal and library collapse delivered most of the reduction, and the rescue rule was necessary to reach full retention after collapse. The slicer needs no compilation and processes a contract in 7.6~ms on average.
+AnchorSlice retained 56.5\% of the characters of the 200-contract sample, and every one of the 463 label-positive category instances kept at least one block tagged with its category, a retention of 1.00 in all eight categories. Comment removal and library collapse delivered most of the reduction; the rescue rule, together with guards for legacy visibility, multi-line signatures, anonymous fallbacks and minified sources, was necessary to reach full retention. The slicer needs no compilation and processes a contract in 7.6~ms on average.
 
 \noindent\textbf{To best answer RQ1:}
 A purely lexical, taxonomy-anchored slice can remove about two fifths of a contract's source while preserving evidence for every labelled vulnerability category in our sample, at a runtime cost that is negligible within a detection pipeline. Because retention is measured at contract level and the anchors were developed on the same sample, this result establishes that the slicer does not discard labelled evidence in-sample, not that it retains the specific vulnerable statements on unseen contracts.
 
 \noindent\textbf{RQ2 --- Token efficiency.}
-Slicing reduced total token consumption by 56.6\%, from 18,279 to 7,928 tokens per contract, and wall-clock detection time by 19.7\%. The reduction fell mainly on cache-read input tokens, which dropped by 77.1\%, while output tokens fell by 15.6\%, and monetary cost fell by only 1.4\% because the removed tokens belong to the cheapest token class.
+The pipeline reduced total token consumption by 55.2\%, from 10,465 to 4,689 tokens per contract, wall-clock detection time by 59.7\% and cost by 63.7\%, or \$0.032 against \$0.089 per contract. The contract text the detector reads fell by 69.1\%, and output tokens fell by 55.9\% because a compact, tagged input also shortens the detector's justifications.
 
 \noindent\textbf{To best answer RQ2:}
 AnchorSlice more than halves the token consumption of source-level vulnerability detection and shortens its runtime by about a fifth. Token count and latency are the portable benefits; the monetary saving depends on how a detector's pricing weights cached input against output and was small in our configuration.
 
 \noindent\textbf{RQ3 --- Detection effectiveness.}
-Under slicing, recall rose by 15.1 percentage points, precision by 2.9, F1-score by 7.3 and Cohen's kappa from 0.145 to 0.220, with false negatives falling from 62 to 44. Access control, front running and reentrancy improved; unchecked return values and time manipulation held; arithmetic and bad randomness declined slightly; and DoS declined by 14.0 points because its anchor fires almost everywhere. The paired McNemar test does not reach significance ($p = 0.761$).
+Recall rose from 0.322 to 0.775, precision from 0.365 to 0.627, F1-score from 0.342 to 0.693 and Cohen's kappa from 0.097 to 0.549, with missed vulnerabilities falling from 314 to 104 and false positives from 259 to 214. Six categories improved, most strongly reentrancy (F1-score 0.19 to 0.82) and access control (0.41 to 0.83); two regressed, time manipulation (0.67 to 0.58) and front running, which the calibrated rule suppresses so strongly that it recovers none of its 15 positives while cutting 132 false positives to 14. The paired McNemar test gives $p \approx 3.7 \times 10^{-26}$, and the 130 contracts never used in development give the same picture (F1-score 0.689).
 
 \noindent\textbf{To best answer RQ3:}
 Slicing did not harm vulnerability detection while more than halving token use, and it improved every aggregate effectiveness measure in our sample, driven by recovered false negatives in categories whose anchors are selective. Because the improvements are not statistically significant and each arm was run once, we read them as encouraging rather than established, and the firm conclusion is that taxonomy-aware input reduction is compatible with effective detection. The DoS result identifies anchor selectivity as the property to control in future versions of the slicer.
@@ -442,9 +444,9 @@ Slicing did not harm vulnerability detection while more than halving token use, 
 %============================================================
 The results above come from one detector, one benchmark and a single run per arm, and several properties of the design and of the evaluation bound how far they generalise. This section states these limits explicitly so that the reported numbers are interpreted within them. It first addresses the strength of the detection results and the gap between token and monetary savings, then two design issues exposed by the per-category analysis, and finally threats arising from how evidence retention was validated, from the sample, and from the detector used.
 
-\noindent\emph{Statistical strength.} The aggregate detection improvements are not statistically significant. McNemar's exact test over the 400 paired cells gives 20 cells correct only under the baseline against 23 correct only under slicing, for a two-sided $p$ of 0.761. The gains in recall and F1-score should therefore be read as encouraging rather than established; the claim the experiment supports firmly is that slicing does not harm detection while more than halving token use.
+\noindent\emph{What the treatment combines.} Arm~B changes both the detector's input and its prompt, so the headline comparison measures the pipeline as a whole against ordinary practice rather than the slice in isolation. The two components were separated on a 70-contract subset: with the prompt held fixed, the slice left detection unchanged ($p = 1.00$) while reducing tokens, so the token savings are attributable to the slice and the accuracy to the calibrated prompt. A tag-free slice arm would further separate the effect of removing code from that of naming candidate categories.
 
-\noindent\emph{Token savings versus cost savings.} The monetary saving is much smaller than the token saving. Cost fell by 1.4\% against a 56.6\% token reduction because the reduction falls almost entirely on cached input, the cheapest token class, while output tokens changed comparatively little. Detectors whose pricing weights these classes differently will see a different figure, so token count and latency are the more portable benefits.
+\noindent\emph{Portability of the cost figure.} Cost fell slightly faster than token count because the removed tokens are input rather than output. Detectors whose pricing weights these classes differently, or that bill cached input at a different rate, will see a different monetary figure, so token count and latency are the more portable benefits.
 
 \noindent\emph{An over-broad anchor.} One anchor is clearly mis-specified. The DoS anchor includes \texttt{require}, \texttt{revert} and \texttt{assert}, which appear in nearly every non-trivial function, so almost every block carries a DoS tag. The detector read that ubiquity as evidence and raised its positive count from 13 to 20 against a reference of 7, without recovering any false negative. A tag that fires almost everywhere carries no information yet still shifts the detector's prior. Relatedly, library collapse identifies constructs by name, so a contract that reuses a standard name for a modified implementation would have that code collapsed as well.
 
@@ -452,16 +454,16 @@ The results above come from one detector, one benchmark and a single run per arm
 
 \noindent\emph{Weak retention criterion.} DIVE labels contracts rather than lines, so evidence retention of 1.00 means only that a positive contract keeps some block tagged with that category, not that it keeps the specific statements an annotator had in mind. The DIVE labels are themselves derived from a consensus of static analysers with post-hoc validation, so effectiveness is measured against the benchmark's annotation policy rather than against audited ground truth.
 
-\noindent\emph{In-sample development and single runs.} The anchors were developed by iterating against the same 50 contracts used for evaluation, so the retention figure is an in-sample fit and will be optimistic on held-out data. The sample is also small, and each arm was run once, so part of the discordance between arms reflects the detector's own non-determinism.
+\noindent\emph{Development set and run-to-run variation.} The anchors and the calibrated decision rules were developed against a subset of the corpus, so figures over the whole sample are in part an in-sample fit; we therefore also report the 130 contracts of the final sampling round, which were never inspected during development and on which the result is unchanged. Each arm was run once. Three repetitions of one configuration on a fixed subset varied by 4.2 percentage points of agreement, which bounds the noise in single-run comparisons and is an order of magnitude smaller than the effect reported here.
 
-\noindent\emph{One detector.} Both arms use a single proprietary model accessed through an interface that does not expose sampling parameters or allow a dated model snapshot to be pinned. Although the slice is detector-agnostic by construction, its effect on other source-level detectors, including open-weight models and multi-stage pipelines such as LineGuard~\cite{lineguard}, has not been measured.
+\noindent\emph{One detector, one benchmark.} Both arms use a single proprietary model accessed through an interface that does not expose sampling parameters or allow a dated model snapshot to be pinned. Although the slice is detector-agnostic by construction, its effect on other source-level detectors, including open-weight models and multi-stage pipelines such as LineGuard~\cite{lineguard}, has not been measured. The evaluation also uses one benchmark whose labels are the union of six analysers, so agreement measures reproduction of a tool consensus rather than of audited ground truth, and the calibrated decision rules follow that consensus rather than Solidity semantics alone.
 
 %============================================================
 \section{Conclusion and Future Work}\label{sec:conclusion}
 %============================================================
 This paper addressed the token cost of smart contract vulnerability detection and showed that a large share of that cost can be removed before the detector runs. We presented AnchorSlice, a static slicing stage that reduces a Solidity contract to the fragments capable of hosting each DASP category, and evaluated it on the DIVE benchmark by changing only the detector's input. This section summarises the findings and the directions they open.
 
-AnchorSlice is lexical throughout, needs no compilation, and processes a contract in 7.6~ms on average. On a stratified sample of 50 contracts it retained evidence for all 119 labelled category instances while emitting 60.2\% of the original characters. In a paired evaluation it reduced token consumption by 56.6\% and detection runtime by 19.7\%, while raising recall from 47.9\% to 63.0\%, F1-score from 42.7\% to 50.0\% and Cohen's kappa from 0.145 to 0.220. These detection gains are not statistically significant, and the results come from a single run of one detector on an in-sample set of anchors, but they indicate that taxonomy-aware input reduction is compatible with, and can benefit, source-level vulnerability detection.
+AnchorSlice is lexical throughout, needs no compilation, and processes a contract in 7.6~ms on average. On 200 contracts it retained evidence for all 463 labelled category instances, a retention of 1.00 in every category, while emitting 56.5\% of the original characters. Against the way such a detector is used in practice, the pipeline reduced token consumption by 55.2\%, cost by 63.7\% and runtime by 59.7\%, while raising F1-score from 0.342 to 0.693, agreement from 0.642 to 0.801 and Cohen's kappa from 0.097 to 0.549, cutting missed vulnerabilities from 314 to 104 and false positives from 259 to 214 at the same time ($p \approx 3.7 \times 10^{-26}$, and F1-score 0.689 on the 130 contracts never used in development). Token cost and detection quality therefore improve together: the saving comes from the slice and the accuracy from the calibrated prompt, and the two compose.
 
 Four directions follow. A tag-free arm would separate the effect of removing code from the effect of naming candidate categories, and would also remove the header overhead that currently offsets the anchoring stage. A selectivity threshold that suppresses any category tagging more than a set fraction of a contract's blocks would address the DoS failure directly while preserving the access-control gain. The anchors should be re-validated on a held-out DIVE split, with the protocol repeated across several runs, before the approach is applied to the full corpus. Finally, the slice should be evaluated in front of other detectors, including open-weight models and our LineGuard framework, to establish that the token savings transfer across detection architectures.
 

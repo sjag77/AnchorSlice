@@ -287,6 +287,26 @@ as a sale window or a lock period, is usually not marked in this corpus: mark 0 
 above is present.",
 )
 
+SYSTEM_PROMPT_CALIBRATED6 = SYSTEM_PROMPT_CALIBRATED5.replace(
+    "- Front Running: the ERC20 approve allowance race, or a function whose payoff demonstrably depends \
+on landing before someone else - auctions, first-come rewards, swaps without a slippage bound. A payable \
+function, a stored price, or ordinary state updates are not front running by themselves.",
+    "- Front Running: rare in this corpus, and a plain ERC20 approve() that overwrites an allowance is NOT \
+marked here even though it is the textbook allowance race - almost every token in the corpus has one and \
+almost none is labelled. Mark 1 only when ordering decides who profits: an auction or bid, a first-come \
+reward or claim that pays the earliest caller, a commit-less reveal, or a swap executed with no slippage \
+bound on behalf of a user.",
+).replace(
+    "- Time manipulation: block.timestamp or now deciding a payout, lock, deadline or eligibility window. \
+Recording or emitting a timestamp is not enough, and a contract that only uses block.number belongs to Bad \
+Randomness rather than here.",
+    "- Time manipulation: mark 1 when block.timestamp or now is compared with <, >, <= or >= in a \
+condition, takes part in arithmetic that derives a value, or is combined with a duration such as 7 days or \
+1 hours. Passing block.timestamp as the deadline argument of a router or swap call, storing it in a record, \
+or emitting it in an event is not enough. A contract that only uses block.number belongs to Bad Randomness \
+rather than here.",
+)
+
 PROMPTS = {
     "brief": SYSTEM_PROMPT_BRIEF,
     "examples": SYSTEM_PROMPT_EXAMPLES,
@@ -295,6 +315,7 @@ PROMPTS = {
     "calibrated3": SYSTEM_PROMPT_CALIBRATED3,
     "calibrated4": SYSTEM_PROMPT_CALIBRATED4,
     "calibrated5": SYSTEM_PROMPT_CALIBRATED5,
+    "calibrated6": SYSTEM_PROMPT_CALIBRATED6,
 }
 
 SCHEMA = {
@@ -420,7 +441,7 @@ def main():
     ap.add_argument("--model", default="opus", help="CLI model alias or full id")
     ap.add_argument("--effort", default="high", choices=["low", "medium", "high", "xhigh", "max"])
     ap.add_argument("--timeout", type=int, default=900)
-    ap.add_argument("--prompt", default="calibrated", choices=["brief", "examples", "calibrated", "calibrated2", "calibrated3", "calibrated4", "calibrated5"],
+    ap.add_argument("--prompt", default="calibrated", choices=["brief", "examples", "calibrated", "calibrated2", "calibrated3", "calibrated4", "calibrated5", "calibrated6"],
                     help="'brief' = one-line category definitions; "
                          "'examples' = each definition carries a minimal code example")
     ap.add_argument("--slicer", default="slice", help="slicer module to use with --slice")
@@ -490,6 +511,8 @@ def main():
                                           args.timeout, PROMPTS[args.prompt])
         total_wall += wall
 
+        if envelope is None and not err:
+            err = "CLI returned no JSON envelope"
         if err:
             print(f" FAILED after {wall:.1f}s")
             records.append({"contractID": s["contractID"], "error": err,

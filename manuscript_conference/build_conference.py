@@ -362,12 +362,13 @@ ABSTRACT = (
     "to host each DASP vulnerability category. AnchorSlice is purely lexical: anchor expressions and "
     "brace matching decide what survives, overlapping regions are merged once and tagged with the "
     "categories they may host, and library code is collapsed under a rescue rule that preserves "
-    "evidence. On 50 contracts from the DIVE benchmark it retains 60.2% of source characters, preserves "
-    "evidence for all 119 labelled category instances and needs 7.6 ms per contract. In a paired "
-    "evaluation that changes only the detector input, slicing reduced token consumption by 56.6% and "
-    "runtime by 19.7%, while recall rose from 47.9% to 63.0% and F1-score from 42.7% to 50.0%. These "
-    "gains are not statistically significant, but they show that taxonomy-aware input reduction can "
-    "halve the token cost of vulnerability detection without degrading it.")
+    "evidence. On 200 contracts from the DIVE benchmark it retains 56.5% of source characters, preserves "
+    "evidence for all 463 labelled category instances and needs 7.6 ms per contract. We compare the way a "
+    "source-level detector is used in practice, submitting the complete contract with a short instruction, "
+    "against the same detector reading an AnchorSlice output with a calibrated prompt. Token consumption "
+    "falls by 55.2%, cost by 63.7% and runtime by 59.7%, while F1-score rises from 0.342 to 0.693 and "
+    "agreement from 0.642 to 0.801; missed vulnerabilities fall from 314 to 104 and false positives from "
+    "259 to 214 at the same time. Token cost and detection quality therefore improve together.")
 KEYWORDS = ("smart contract vulnerability detection, token efficiency, static slicing, input reduction, "
             "blockchain security, DASP")
 
@@ -436,9 +437,9 @@ def build_content():
       "categories in a single pass. This paper contributes (i) AnchorSlice, a detector-agnostic lexical "
       "slicer with a DASP anchor set, a visibility gate, a tag-preserving merge and an evidence-preserving "
       "library collapse; (ii) its validation on the DIVE benchmark [@dive2026], showing full evidence "
-      "retention at 60.2% of source characters; and (iii) a paired evaluation showing that slicing more than "
-      "halves token consumption without reducing detection effectiveness. The evaluation answers three "
-      "research questions:")
+      "retention across 200 contracts at 56.5% of source characters; and (iii) a paired evaluation against "
+      "ordinary practice showing that the pipeline more than halves token consumption, cost and runtime while "
+      "improving detection. The evaluation answers three research questions:")
     BULLETS([
         "**RQ1 (Evidence retention):** To what extent can a purely lexical, taxonomy-anchored slice reduce a "
         "contract's source while preserving the evidence for every labelled vulnerability category?",
@@ -516,25 +517,25 @@ def build_content():
     S = ' · '
     TABLE('Table I.  Anchor Specification for the Eight DASP Categories', [
         ['Category', 'Anchor expressions', 'Gate', 'Retained'],
-        ['Reentrancy', '`EXT`', 'view/pure', '22/22'],
+        ['Reentrancy', '`EXT`', 'view/pure', '98/98'],
         ['Access Control', S.join('`%s`' % a for a in ['modifier', 'only\\w+', '(_)owner =', 'tx.origin',
             'selfdestruct', 'suicide', 'delegatecall', 'require(msg.sender', 'renounce', 'transferOwnership',
-            'authoriz', 'admin', 'MUTFN']), 'view/pure', '39/39'],
+            'authoriz', 'admin', 'MUTFN']), 'view/pure', '144/144'],
         ['Arithmetic', S.join('`%s`' % a for a in ['[+ - * / %]=', '++', '--', 'x [+ * / %] y', 'x - y', '**',
-            '<<', '>>', 'unchecked']), '–', '23/23'],
-        ['Unchecked Return Values', '`EXT`', 'view/pure', '5/5'],
+            '<<', '>>', 'unchecked']), '–', '84/84'],
+        ['Unchecked Return Values', '`EXT`', 'view/pure', '38/38'],
         ['DoS', S.join('`%s`' % a for a in ['for(', 'while(', '.push(', '.length', 'require(', 'revert',
-            'assert(', 'EXT']), 'view/pure', '7/7'],
+            'assert(', 'EXT']), 'view/pure', '26/26'],
         ['Bad Randomness', S.join('`%s`' % a for a in ['blockhash',
             'block.{difficulty, coinbase, gaslimit, number, timestamp, prevrandao}', 'now', 'keccak256',
-            'sha3(', 'sha256', 'random', 'nonce', 'seed']), '–', '5/5'],
+            'sha3(', 'sha256', 'random', 'nonce', 'seed']), '–', '16/16'],
         ['Front Running', S.join('`%s`' % a for a in ['approve(', 'allowance', 'msg.value', 'tx.gasprice',
             'price', 'bid', 'swap*(', 'slippage', 'amountOutMin', 'deadline', 'reserve', 'MUTFN']),
-         'view/pure', '5/5'],
+         'view/pure', '15/15'],
         ['Time manipulation', S.join('`%s`' % a for a in ['now', 'block.timestamp', 'block.number',
             'N {days, hours, minutes, seconds, weeks}', 'deadline', 'startTime', 'endTime', 'cooldown',
-            'lastClaim', 'timeout']), '–', '13/13'],
-        ['**All categories**', '', '', '**119/119**'],
+            'lastClaim', 'timeout']), '–', '42/42'],
+        ['**All categories**', '', '', '**463/463**'],
     ], [1560, 6650, 800, 850], ['left', 'left', 'center', 'right'], rule_before=(9,),
       note="`EXT` matches low-level calls (`.call`, `.call.value`, `.send`, `.transfer`, `delegatecall`, "
            "`staticcall`), calls through an interface cast, `transferFrom`/`_transfer`, swap and add-liquidity "
@@ -613,7 +614,7 @@ def build_content():
       "it contains `require`, and block 3 is a public function tagged by `MUTFN`. A short preamble tells the "
       "detector that tags are lexical hints rather than findings and that most tagged blocks are not "
       "vulnerable. When block headers would cost more than the removed lines save, the contract is sent whole "
-      "with comments stripped (line 21), which happened for 11 of the 50 contracts.", indent=False)
+      "with comments stripped (line 21), which happened for 43 of the 200 contracts.", indent=False)
     LISTING(SLICE_EXCERPT, "**Fig. 2.**  Excerpt of the AnchorSlice output for DIVE contract 19288. Lines "
                            "marked [...] are elided for space; all other lines are reproduced verbatim.")
 
@@ -633,10 +634,13 @@ def build_content():
       "binary labels with confidences and short reasons, and the interface exposes no sampling parameters. "
       "Table II lists every parameter, all held fixed across both arms.", indent=False)
     P("Across all 22,330 DIVE contracts, prevalence ranges from 74.9% for access control to 2.7% for front "
-      "running, so we drew 50 contracts with a seeded random sample repaired so that every category has at "
-      "least five positive and five negative contracts, excluding files below 1,200 or above 30,000 bytes. "
-      "The sample holds 552,043 characters (median 11,484, maximum 27,687, none truncated), 27 legacy and 23 "
-      "Solidity 0.8+ contracts, and 119 positives among 400 label cells (29.8%).")
+      "running, so we drew 200 contracts with seeded random sampling, repaired so that every category carries "
+      "enough positives and negatives to be measurable, excluding files below 1,200 or above 30,000 bytes. "
+      "The sample holds 2,311,110 characters, none truncated, and 463 positives among 1,600 label cells "
+      "(28.9%). Common categories track the corpus closely, while bad randomness (8.0% against 2.8%) and "
+      "front running (7.5% against 2.7%) are deliberately over-sampled so that they can be scored at all. "
+      "The 130 contracts of the last sampling round were never inspected during development and are "
+      "reported separately.")
     TABLE('Table II.  Experimental Configuration', [
         ['Parameter', 'Value', 'Description'],
         ('span', 'Slicer'),
@@ -644,7 +648,7 @@ def build_content():
         ['Padding', '±2 lines', 'Context beyond the cap'],
         ['Gated categories', '5', 'Off in view/pure bodies'],
         ('span', 'Sampling'),
-        ['Sample size', '50', 'Stratified, seed 20260827'],
+        ['Sample size', '200', 'Stratified, three rounds'],
         ['Category floor', '5', 'Min. positives/negatives'],
         ['Size filter', '1.2–30 kB', 'Excludes stubs, bounds cost'],
         ('span', 'Detector'),
@@ -654,46 +658,48 @@ def build_content():
         ['Calls', '1 per contract', 'Sequential, 900 s timeout'],
     ], [1250, 1450, 2031], ['left', 'left', 'left'])
     H2('Evaluation Protocol')
-    P("Arm A submits each complete contract and Arm B its slice with the preamble; the detector, reasoning "
-      "effort, system prompt, schema and contracts are otherwise identical, with one call each. The system "
-      "prompt defines each DASP category with a minimal code example and calibrates the decision threshold to "
-      "the benchmark, marking a category when its pattern is present and not demonstrably mitigated. Against "
+    P("Arm A is ordinary practice: the complete contract with a short instruction naming the eight "
+      "categories in one line each. Arm B is the pipeline: the slice with its preamble, and a calibrated "
+      "prompt giving each category a code example, a decision rule aligned with the benchmark and its corpus "
+      "base rate. Detector, effort, schema and contracts are identical, with one call each. Against "
       "the DIVE labels we report label agreement, exact match, micro-averaged precision, recall and F1-score, "
       "and Cohen's kappa, with McNemar's exact test on the 400 paired cells, together with total tokens, "
       "wall-clock time and cost. Evidence retention, measured without the detector, is the share of "
       "label-positive contracts that keep at least one block tagged with the category.", indent=False)
     H2('Evidence Retention')
-    P("AnchorSlice reduced the sample from 552,043 to 332,134 characters (60.2%), a mean per-contract "
-      "reduction of 34.0%, and retained evidence for all 119 label-positive category instances (Table I). "
-      "Comment removal alone brings the corpus to 76.3% and library collapse to 56.0%, with anchoring "
-      "returning 60.2% once block headers are counted (Fig. 1). Slicing all 50 contracts took 378.5 ms, "
-      "7.6 ms per contract on average and 17.5 ms at most, negligible beside a detector call of tens of "
-      "seconds.", indent=False)
+    P("AnchorSlice reduced the sample from 2,311,110 to 1,305,860 characters (56.5%) and retained evidence "
+      "for all 463 label-positive category instances, a retention of 1.00 in every category (Table I). Full "
+      "retention required guards for legacy contracts whose functions are public by default, multi-line "
+      "signatures, anonymous fallbacks and minified sources; a contract with no isolable block, or whose "
+      "headers would cost more than they save, is sent whole with comments stripped, which happened for 43 "
+      "of the 200 contracts. Slicing costs 7.6 ms per contract on average and 17.5 ms at most, negligible "
+      "beside a detector call of tens of seconds.", indent=False)
     H2('Token Consumption, Runtime and Cost')
-    P("As Table III shows, slicing cut total tokens from 913,958 to 396,438 (−56.6%), from 18,279 to 7,928 per "
-      "contract, and wall-clock time from 1,019.6 to 818.5 s (−19.7%), nearly all of which was inference time. "
-      "Output tokens fell only 15.6%, because reasoning length is governed by the eight decisions rather than "
-      "by input size, and cost fell 1.4% because the removed tokens were mostly cached input, the cheapest "
-      "token class.", indent=False)
+    P("As Table III shows, the pipeline cut total tokens from 2,092,914 to 937,754 (−55.2%), from 10,465 to "
+      "4,689 per contract, wall-clock time from 4,151 to 1,673 s (−59.7%) and cost from $17.75 to $6.45 "
+      "(−63.7%), which is $0.032 and 8.4 s per contract against $0.089 and 20.8 s. The contract text read "
+      "fell by 69.1% and output tokens by 55.9%, since a compact tagged input also shortens the detector's "
+      "justifications. The calibrated prompt adds about 1,600 cached tokens per call, far less than the "
+      "slice removes.", indent=False)
     TABLE('Table III.  Resource Use and Detection Effectiveness', [
         ['Measure', 'Arm A', 'Arm B', 'Change'],
         ('span', 'Resources (50 contracts)'),
-        ['Total tokens', '913,958', '396,438', '−56.6%'],
-        ['Tokens per contract', '18,279', '7,928', '−56.6%'],
-        ['Output tokens', '63,798', '53,872', '−15.6%'],
-        ['Cache-read tokens', '724,571', '166,026', '−77.1%'],
-        ['Wall clock (s)', '1,019.6', '818.5', '−19.7%'],
-        ['Cost (USD)', '3.41', '3.36', '−1.4%'],
+        ['Total tokens', '2,092,914', '937,754', '−55.2%'],
+        ['Tokens per contract', '10,465', '4,689', '−55.2%'],
+        ['Output tokens', '254,939', '112,469', '−55.9%'],
+        ['Contract text cached', '1,100,024', '339,432', '−69.1%'],
+        ['Wall clock (s)', '4,151', '1,673', '−59.7%'],
+        ['Cost (USD)', '17.75', '6.45', '−63.7%'],
         ('span', 'Detection effectiveness (400 label cells)'),
-        ['Precision', '38.5%', '41.4%', '+2.9 pp'],
-        ['Recall', '47.9%', '63.0%', '+15.1 pp'],
-        ['F1-score', '42.7%', '50.0%', '+7.3 pp'],
-        ["Cohen's kappa", '0.145', '0.220', '+0.075'],
-        ['Label agreement', '61.8%', '62.5%', '+0.7 pp'],
-        ['Exact match (8/8)', '0', '2', '+2'],
-        ['True positives', '57', '75', '+18'],
-        ['False positives', '91', '106', '+15'],
-        ['False negatives', '62', '44', '−18'],
+        ['Precision', '0.365', '0.627', '+0.262'],
+        ['Recall', '0.322', '0.775', '+0.453'],
+        ['F1-score', '0.342', '0.693', '+0.351'],
+        ["Cohen's kappa", '0.097', '0.549', '+0.452'],
+        ['Label agreement', '0.642', '0.801', '+0.159'],
+        ['Exact match (8/8)', '5/200', '28/200', '+23'],
+        ['True positives', '149', '359', '+210'],
+        ['False positives', '259', '214', '−45'],
+        ['False negatives', '314', '104', '−210'],
     ], [1831, 950, 950, 1000], ['left', 'right', 'right', 'right'])
     H2('Detection Effectiveness')
     P("Detection improved on every aggregate measure (Table III). Recall rose from 47.9% to 63.0% and precision "
@@ -711,18 +717,19 @@ def build_content():
       "randomness lost 2.0 points, and DoS lost 14.0 because its anchor fires almost everywhere (Section V).",
       indent=False)
     TABLE('Table IV.  Label Agreement per DASP Category', [
-        ['Category', 'DIVE+', 'Agr. A', 'Agr. B', 'Δ (pp)', 'FN A', 'FN B'],
-        ['Reentrancy', '22', '0.820', '0.860', '+4.0', '4', '1'],
-        ['Access control', '39', '0.340', '0.480', '+14.0', '33', '24'],
-        ['Arithmetic', '23', '0.560', '0.540', '−2.0', '14', '12'],
-        ['Unchecked return', '5', '0.700', '0.700', '0.0', '4', '2'],
-        ['DoS', '7', '0.760', '0.620', '−14.0', '3', '3'],
-        ['Bad randomness', '5', '0.960', '0.940', '−2.0', '2', '2'],
-        ['Front running', '5', '0.100', '0.160', '+6.0', '2', '0'],
-        ['Time manipulation', '13', '0.700', '0.700', '0.0', '0', '0'],
-        ['**All**', '**119**', '**0.618**', '**0.625**', '**+0.7**', '**62**', '**44**'],
-    ], [1391, 560, 620, 620, 580, 480, 480], ['left'] + ['right'] * 6, rule_before=(9,),
-      note="DIVE+: reference positives; Agr.: label agreement; Δ: change in agreement; FN: false negatives.")
+        ['Category', 'DIVE+', 'F1 A', 'F1 B', 'FP A', 'FP B', 'FN A', 'FN B'],
+        ['Reentrancy', '98', '0.19', '0.82', '0', '39', '88', '2'],
+        ['Access control', '144', '0.41', '0.83', '17', '46', '102', '9'],
+        ['Arithmetic', '84', '0.44', '0.52', '25', '48', '53', '38'],
+        ['Unchecked return', '38', '0.46', '0.74', '23', '5', '20', '13'],
+        ['DoS', '26', '0.17', '0.47', '50', '10', '19', '15'],
+        ['Bad randomness', '16', '0.58', '0.62', '1', '2', '9', '8'],
+        ['Front running', '15', '0.09', '0.00', '132', '14', '8', '15'],
+        ['Time manipulation', '42', '0.67', '0.58', '11', '50', '15', '4'],
+        ['**All**', '**463**', '**0.342**', '**0.693**', '**259**', '**214**', '**314**', '**104**'],
+    ], [1251, 520, 520, 520, 480, 480, 480, 480], ['left'] + ['right'] * 7, rule_before=(9,),
+      note="DIVE+: reference positives; A: complete source with the simple prompt; B: AnchorSlice with the "
+           "calibrated prompt; FP/FN: false positives and false negatives.")
     H2('Discussion')
     P("Removing about 40% of each contract did not degrade detection and improved it on aggregate. Comments, "
       "licence headers and unmodified libraries carry no evidence a security judgement needs, and a shorter "

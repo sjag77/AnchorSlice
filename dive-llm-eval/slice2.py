@@ -62,7 +62,7 @@ ANCHORS = {
                       r'|\bswap\w*\s*\(|\bslippage|amountOutMin|\bcommit\w*\s*\('
                       r'|\breveal\w*\s*\(|\bclaim\w*\s*\(|\bprice\w*\s*[\[\.=]'
                       r'|\bbuy\w*\s*\(|\breward\w*\s*\(|\bwithdrawReward'
-                      r'|\bprices?\s*\.\s*push|\bhighest\w*|\boutbid\w*'),
+                      r'|\bprices?\s*\.\s*push|\bhighest\w*|\boutbid\w*|') + MUTFN,
     'Time manipulation': (r'\bnow\b|block\.timestamp|block\.number'
                           r'|\b\d+\s*(days|hours|minutes|seconds|weeks)\b|\bdeadline\b'
                           r'|\bstartTime\b|\bendTime\b|\bcooldown|lastClaim|\btimeout\b'),
@@ -248,6 +248,16 @@ def render(src, contract_id='', cap=10, pad=2):
             out.append(L[fs].rstrip() + '   // enclosing signature')
         out += [L[k] for k in range(a, b + 1) if L[k].strip()]
 
+    # a minified contract puts whole libraries on one line: collapsing it would drop everything
+    nonblank = [l for l in L if l.strip()]
+    if len(r['collapsed']) > 0.6 * max(len(nonblank), 1):
+        bare = '\n'.join(nonblank)
+        return (f'// CONTRACT {contract_id}: {len(L)} lines, mostly library-collapsed '
+                f'- full source, comments stripped.\n' + bare)
+    if not blocks:
+        bare = '\n'.join(l for l in L if l.strip())
+        return (f'// CONTRACT {contract_id}: {len(L)} lines, no candidate block isolated '
+                f'- full source, comments stripped.\n' + bare)
     body = '\n'.join(out)
     # tiny contracts: block headers can cost more than slicing saves
     bare = '\n'.join(l for l in L if l.strip())
