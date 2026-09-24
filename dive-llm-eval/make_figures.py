@@ -44,63 +44,67 @@ def arrow(ax, x1, y, x2, color=MUTE, lw=1.1):
                                  shrinkA=0, shrinkB=0))
 
 def figure_pipeline():
-    fig, ax = plt.subplots(figsize=(7.4, 3.6))
-    ax.set_xlim(-0.025, 1.025); ax.set_ylim(-0.10, 1.05); ax.axis('off')
+    """Architecture: conventional use above, AnchorSlice below."""
+    fig, ax = plt.subplots(figsize=(7.4, 3.0))
+    ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.axis('off')
 
-    # --- Arm A: the contract goes in whole
-    ax.text(0.005, 0.99, 'Arm A · a contract handed to the detector as it is',
-            fontsize=10, fontweight='bold', color=INK)
-    box(ax, 0.005, 0.78, 0.175, 0.16, '200 contracts\n2,311,110 chars', face='#f4f7f8')
-    arrow(ax, 0.185, 0.86, 0.655)
-    ax.text(0.42, 0.90, 'complete source · 100% · one-line category list', fontsize=9,
-            style='italic', color=MUTE, ha='center')
-    box(ax, 0.66, 0.78, 0.15, 0.16, 'detector\n(Opus 5)', face='#f4f7f8')
-    arrow(ax, 0.815, 0.86, 0.845)
-    box(ax, 0.85, 0.78, 0.145, 0.16, '8 DASP\nlabels', face='#f4f7f8')
-    ax.text(0.995, 0.735, '10,465 tokens · $0.089 · 20.8 s per contract · F1 0.342',
-            fontsize=8.6, color=MUTE, ha='right')
+    def node(x, y, w, h, text, accent=False, fs=9.2):
+        ax.add_patch(FancyBboxPatch((x, y), w, h,
+                                    boxstyle='round,pad=0.005,rounding_size=0.010',
+                                    linewidth=1.0, edgecolor=SLICE if accent else INK,
+                                    facecolor='white' if accent else '#f5f7f8', zorder=3))
+        ax.text(x + w / 2, y + h / 2, text, ha='center', va='center', fontsize=fs,
+                color=INK, zorder=4, linespacing=1.3)
 
-    ax.plot([0.005, 0.995], [0.69, 0.69], color=RULE, lw=0.8, ls=(0, (4, 3)))
+    def link(x1, y1, x2, y2=None, color=MUTE):
+        ax.add_patch(FancyArrowPatch((x1, y1), (x2, y1 if y2 is None else y2),
+                                     arrowstyle='-|>', mutation_scale=8, linewidth=1.0,
+                                     color=color, zorder=2, shrinkA=0, shrinkB=0))
 
-    # --- Arm B: AnchorSlice, two components built from one anchor set
-    ax.text(0.005, 0.625, 'Arm B · AnchorSlice', fontsize=10, fontweight='bold', color=SLICE)
-    ax.add_patch(FancyBboxPatch((0.20, 0.10), 0.505, 0.50,
-                                boxstyle='round,pad=0.012,rounding_size=0.015',
-                                linewidth=1.3, edgecolor=SLICE, facecolor='#f2f8fa', zorder=1))
-    ax.text(0.4525, 0.555, 'one anchor set per DASP category', fontsize=8.8, color=SLICE,
-            ha='center', style='italic', zorder=3)
+    # ---------------- conventional use
+    ax.text(0.02, 0.935, 'C O N V E N T I O N A L   U S E', fontsize=8.0, color=MUTE,
+            fontweight='bold')
+    node(0.02, 0.72, 0.17, 0.16, 'Solidity\ncontract')
+    link(0.19, 0.80, 0.575)
+    ax.text(0.38, 0.825, 'complete source', fontsize=8.6, style='italic', color=MUTE, ha='center')
+    node(0.58, 0.72, 0.16, 0.16, 'LLM detector')
+    link(0.74, 0.80, 0.775)
+    node(0.78, 0.72, 0.19, 0.16, 'eight DASP\nlabels')
+    ax.text(0.97, 0.672, '10,465 tokens  ·  $0.089  ·  20.8 s  ·  F1 0.342',
+            fontsize=8.4, color=MUTE, ha='right')
 
-    box(ax, 0.005, 0.29, 0.175, 0.16, '200 contracts\n2,311,110 chars', face='#f4f7f8')
-    arrow(ax, 0.185, 0.37, 0.215, color=SLICE)
+    ax.plot([0.02, 0.97], [0.615, 0.615], color=RULE, lw=0.8, ls=(0, (5, 4)))
 
-    # component 1: the slicer
-    ax.text(0.222, 0.495, 'Component 1 · static slicer', fontsize=8.8, color=INK,
-            fontweight='bold', zorder=3)
-    for label, x in [('S1 · strip\ncomments', 0.222), ('S2 · collapse\nlibrary code', 0.383),
-                     ('S3 · anchor\nwindows + tags', 0.544)]:
-        box(ax, x, 0.345, 0.148, 0.135, label, edge=SLICE, lw=1.1, face='white', fs=8.6)
-    arrow(ax, 0.372, 0.4125, 0.381, color=SLICE); arrow(ax, 0.533, 0.4125, 0.542, color=SLICE)
-    ax.text(0.222, 0.295, 'shrinks the input: 56.5% of characters, retention 463/463',
-            fontsize=8.4, color=SLICE, zorder=3)
+    # ---------------- AnchorSlice
+    ax.text(0.02, 0.555, 'A N C H O R S L I C E', fontsize=8.0, color=SLICE, fontweight='bold')
+    ax.add_patch(FancyBboxPatch((0.205, 0.10), 0.475, 0.40,
+                                boxstyle='round,pad=0.006,rounding_size=0.012',
+                                linewidth=1.0, edgecolor=SLICE, facecolor='#f3f8fa',
+                                linestyle=(0, (4, 3)), zorder=1))
+    ax.text(0.215, 0.455, 'static, model-free', fontsize=8.2, color=SLICE, style='italic', zorder=4)
 
-    # component 2: the decision rules
-    ax.text(0.222, 0.225, 'Component 2 · anchor-derived decision rules', fontsize=8.8,
-            color=INK, fontweight='bold', zorder=3)
-    box(ax, 0.222, 0.125, 0.47, 0.072,
-        'per category: example · decision rule · base rate',
-        edge=SLICE, lw=1.1, face='white', fs=8.4)
+    node(0.02, 0.26, 0.17, 0.14, 'Solidity\ncontract')
+    node(0.225, 0.26, 0.125, 0.14, 'anchor set\nDASP 1–8', accent=True, fs=8.8)
+    link(0.19, 0.33, 0.222, color=SLICE)
 
-    arrow(ax, 0.71, 0.37, 0.742, color=SLICE)
-    box(ax, 0.747, 0.29, 0.125, 0.16, 'detector\n(Opus 5)', face='#f4f7f8')
-    arrow(ax, 0.875, 0.37, 0.893)
-    box(ax, 0.895, 0.29, 0.10, 0.16, '8 DASP\nlabels', face='#f4f7f8')
-    ax.text(0.995, 0.235, '4,689 tokens · $0.032 · 8.4 s', fontsize=8.6, color=SLICE,
+    node(0.385, 0.325, 0.27, 0.115, 'slicer:  strip · collapse · anchor', accent=True, fs=8.8)
+    node(0.385, 0.135, 0.27, 0.115, 'decision rules:  example · rule · rate', accent=True, fs=8.8)
+    link(0.351, 0.355, 0.382, 0.383, SLICE)
+    link(0.351, 0.305, 0.382, 0.193, SLICE)
+
+    link(0.657, 0.383, 0.714, 0.355, SLICE)
+    link(0.657, 0.193, 0.714, 0.305, SLICE)
+    node(0.72, 0.26, 0.15, 0.14, 'LLM detector')
+    link(0.872, 0.33, 0.888)
+    node(0.89, 0.26, 0.08, 0.14, 'eight\nlabels')
+    ax.text(0.97, 0.212, '4,689 tokens  ·  $0.032', fontsize=8.4, color=SLICE,
             ha='right', fontweight='bold')
-    ax.text(0.995, 0.175, 'per contract · F1 0.693', fontsize=8.6, color=SLICE,
+    ax.text(0.97, 0.155, '8.4 s  ·  F1 0.693', fontsize=8.4, color=SLICE,
             ha='right', fontweight='bold')
-    ax.text(0.005, -0.055,
-            'the slicer carries the token saving; the decision rules carry the detection quality',
-            fontsize=8.8, color=SLICE, ha='left', style='italic')
+
+    ax.text(0.02, 0.03,
+            'The slicer sets how much the detector reads; the decision rules set how it judges what it reads.',
+            fontsize=8.4, color=MUTE, ha='left', style='italic')
     save(fig, 'fig1_pipeline.png')
 
 # ------------------------------------------------------------------ Fig. 2

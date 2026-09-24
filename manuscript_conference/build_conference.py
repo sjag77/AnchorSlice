@@ -515,10 +515,13 @@ def build_content():
       "collapse, and finally the rendering of the slice for the detector, illustrated in Fig. 2.", indent=False)
 
     WIDE_START()
-    FIGURE(FIG1, "**Fig. 1.**  AnchorSlice and the practice it replaces. Arm A hands the detector a contract "
-                 "as it is. Arm B is AnchorSlice: one anchor set per DASP category drives two components, a "
-                 "static slicer that shrinks the input and anchor-derived decision rules that state what each "
-                 "category means in this corpus. Detector and output schema are identical in both arms.")
+    FIGURE(FIG1, "**Fig. 1.**  AnchorSlice and the practice it replaces. Conventionally the whole contract "
+                 "is handed to the detector with a one-line list of the categories. AnchorSlice derives two "
+                 "static components from one anchor set per DASP category: a slicer, which emits a tagged "
+                 "slice of 56.5% of the source characters while retaining all 463 labelled category "
+                 "instances, and decision rules, which state what each category means in this corpus. "
+                 "Detector and output schema are identical in both arms; figures beneath each lane are per "
+                 "contract.")
     S = ' · '
     TABLE('Table I.  Anchor Specification for the Eight DASP Categories', [
         ['Category', 'Anchor expressions', 'Gate', 'Retained'],

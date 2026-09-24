@@ -163,7 +163,7 @@ AnchorSlice is built from a single artefact, the anchor set of each DASP categor
 \begin{figure*}[htbp]
     \centering
     \includegraphics[width=\linewidth, keepaspectratio]{fig1_pipeline.png}
-    \caption{AnchorSlice and the practice it replaces. Arm~A hands the detector a contract as it is, with a one-line list of the categories. Arm~B is AnchorSlice: one anchor set per DASP category drives two components, a static slicer that shrinks the input and a set of anchor-derived decision rules that state what each category means in this corpus. The detector, Claude Opus~5, and the output schema are identical in both arms.}
+    \caption{AnchorSlice and the practice it replaces. Conventionally the whole contract is handed to the detector with a one-line list of the categories. AnchorSlice derives two static components from one anchor set per DASP category: a slicer, which emits a tagged slice of 56.5\% of the source characters while retaining all 463 labelled category instances, and a set of decision rules, which state what each category means in this corpus. The detector, Claude Opus~5, and the output schema are identical in both arms; figures beneath each lane are per contract.}
     \label{fig:pipeline}
 \end{figure*}
 
