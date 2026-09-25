@@ -45,7 +45,6 @@ unchanged (F1 0.689). **Evidence retention is 463/463 = 1.00**, verified before 
 ## Repository layout
 
 ```
-manuscript_conference/           7-page conference version (earlier two-arm write-up)
 dive-llm-eval/
 ├── slice.py                     the slicer as first published
 ├── slice2.py                    current slicer (tightened anchors, retention guards)
