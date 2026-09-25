@@ -23,3 +23,5 @@ venv/
 # DIVE raw archive
 dive-llm-eval/data/DIVE_Raw_Data.zip
 dive-llm-eval/data/DIVE_Raw_Data.zip
+*.fls
+*.fdb_latexmk

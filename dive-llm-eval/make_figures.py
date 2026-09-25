@@ -111,21 +111,36 @@ def figure_pipeline():
 CATS = ['Reentrancy', 'Access Control', 'Unchecked Return\nValues', 'DoS',
         'Bad Randomness', 'Arithmetic', 'Time manipulation', 'Front Running']
 F1_A = [0.19, 0.41, 0.46, 0.17, 0.58, 0.44, 0.67, 0.09]
-F1_B = [0.82, 0.83, 0.74, 0.47, 0.62, 0.52, 0.58, 0.00]
+F1_B = [0.82, 0.82, 0.80, 0.42, 0.58, 0.57, 0.60, 0.00]
+F1_C = [0.82, 0.83, 0.74, 0.47, 0.62, 0.52, 0.58, 0.00]
 POS = [98, 144, 38, 26, 16, 84, 42, 15]
+BASE2 = '#c9d6de'
 
 def figure_per_category():
-    fig, ax = plt.subplots(figsize=(7.4, 3.5))
-    y = range(len(CATS))
-    h = 0.38
-    for i, (a, b) in enumerate(zip(F1_A, F1_B)):
-        ax.barh(i + h / 2, a, height=h, color=BASE, edgecolor='none', zorder=2)
-        ax.barh(i - h / 2, b, height=h, color=SLICE if b >= a else WARM, edgecolor='none', zorder=2)
-        ax.text(a + 0.012, i + h / 2, f'{a:.2f}', va='center', fontsize=8, color=MUTE)
-        ax.text(max(b, 0.006) + 0.012, i - h / 2, f'{b:.2f}', va='center', fontsize=8,
-                color=SLICE if b >= a else WARM, fontweight='bold')
-    ax.set_yticks(list(y))
-    ax.set_yticklabels([f'{c}\n({p} positives)' for c, p in zip(CATS, POS)], fontsize=9)
+    order = sorted(range(len(CATS)), key=lambda i: F1_C[i] - F1_A[i], reverse=True)
+    cats = [CATS[i] for i in order]
+    a_, b_, c_ = [F1_A[i] for i in order], [F1_B[i] for i in order], [F1_C[i] for i in order]
+    pos = [POS[i] for i in order]
+
+    fig, ax = plt.subplots(figsize=(7.4, 3.8))
+    h = 0.26
+
+    def label(v, y, bar_colour):
+        """Value inside the bar when it is long enough, outside when it is not."""
+        if v >= 0.16:
+            ax.text(v - 0.014, y, f'{v:.2f}', va='center', ha='right', fontsize=7.6,
+                    color=INK if bar_colour == BASE2 else 'white', zorder=4)
+        else:
+            ax.text(v + 0.012, y, f'{v:.2f}', va='center', ha='left', fontsize=7.6,
+                    color=bar_colour if bar_colour != BASE2 else MUTE, zorder=4)
+
+    for i, (a, b, c) in enumerate(zip(a_, b_, c_)):
+        ax.barh(i + h, a, height=h, color=BASE2, edgecolor='none', zorder=2)
+        ax.barh(i, b, height=h, color=BASE, edgecolor='none', zorder=2)
+        ax.barh(i - h, c, height=h, color=SLICE, edgecolor='none', zorder=2)
+        label(a, i + h, BASE2); label(b, i, BASE); label(c, i - h, SLICE)
+    ax.set_yticks(range(len(cats)))
+    ax.set_yticklabels([f'{c}\n({p} positives)' for c, p in zip(cats, pos)], fontsize=9)
     ax.invert_yaxis()
     ax.set_xlim(0, 1.0); ax.set_xlabel('F1-score against the DIVE labels', fontsize=9.5)
     ax.set_xticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
@@ -133,38 +148,34 @@ def figure_per_category():
     for side in ('top', 'right', 'left'):
         ax.spines[side].set_visible(False)
     ax.tick_params(axis='y', length=0)
-    ax.bar(0, 0, color=BASE, label='Arm A · complete source, simple prompt')
-    ax.bar(0, 0, color=SLICE, label='Arm B · AnchorSlice, calibrated prompt')
-    ax.bar(0, 0, color=WARM, label='Arm B, where it regressed')
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.16), fontsize=8.6,
+    ax.bar(0, 0, color=BASE2, label='A \u00b7 complete source, one-line instruction')
+    ax.bar(0, 0, color=BASE, label='B \u00b7 complete source, decision rules')
+    ax.bar(0, 0, color=SLICE, label='C \u00b7 AnchorSlice')
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.14), fontsize=8.6,
               frameon=False, ncol=3, columnspacing=1.6, handlelength=1.4)
     save(fig, 'fig2_per_category.png')
 
 # ------------------------------------------------------------------ Fig. 3
 def figure_resources():
-    fig, axes = plt.subplots(1, 4, figsize=(7.4, 1.95))
-    panels = [('Tokens per contract', 10465, 4689, '{:,.0f}', '−55.2%'),
-              ('Cost per contract (USD)', 0.089, 0.032, '{:.3f}', '−63.7%'),
-              ('Seconds per contract', 20.8, 8.4, '{:.1f}', '−59.7%'),
-              ('F1-score', 0.342, 0.693, '{:.3f}', '+103%')]
-    for ax, (title, a, b, fmt, delta) in zip(axes, panels):
-        gain = b > a
-        ax.bar([0], [a], width=0.55, color=BASE, zorder=2)
-        ax.bar([1], [b], width=0.55, color=SLICE, zorder=2)
-        for x, v in ((0, a), (1, b)):
-            ax.text(x, v, fmt.format(v), ha='center', va='bottom', fontsize=8.6,
-                    color=INK, fontweight='bold' if x else 'normal')
-        ax.set_title(title, fontsize=9, pad=12)
-        ax.text(0.5, 1.0, delta, transform=ax.transAxes, ha='center', va='bottom',
-                fontsize=9.5, color=SLICE if gain or delta.startswith('−') else WARM,
-                fontweight='bold')
-        ax.set_xticks([0, 1]); ax.set_xticklabels(['A', 'B'], fontsize=9)
-        ax.set_ylim(0, max(a, b) * 1.32)
-        ax.set_yticks([])
+    fig, axes = plt.subplots(1, 4, figsize=(7.4, 2.15))
+    panels = [('Tokens per contract', (10465, 12351, 4689), '{:,.0f}', '\u221262.0% vs B'),
+              ('Cost per contract (USD)', (0.089, 0.088, 0.032), '{:.3f}', '\u221263.2% vs B'),
+              ('Seconds per contract', (20.8, 26.8, 8.4), '{:.1f}', '\u221268.8% vs B'),
+              ('F1-score', (0.342, 0.695, 0.693), '{:.3f}', 'B \u2248 C  (p = 0.57)')]
+    for ax, (title, vals, fmt, delta) in zip(axes, panels):
+        for x, (v, col) in enumerate(zip(vals, (BASE2, BASE, SLICE))):
+            ax.bar([x], [v], width=0.62, color=col, zorder=2)
+            ax.text(x, v, fmt.format(v), ha='center', va='bottom', fontsize=8.0,
+                    color=INK, fontweight='bold' if x == 2 else 'normal')
+        ax.set_title(title, fontsize=9, pad=14)
+        ax.text(0.5, 1.02, delta, transform=ax.transAxes, ha='center', va='bottom',
+                fontsize=8.6, color=SLICE, fontweight='bold')
+        ax.set_xticks([0, 1, 2]); ax.set_xticklabels(['A', 'B', 'C'], fontsize=9)
+        ax.set_ylim(0, max(vals) * 1.34); ax.set_yticks([])
         for side in ('top', 'right', 'left'):
             ax.spines[side].set_visible(False)
         ax.tick_params(axis='x', length=0)
-    fig.subplots_adjust(wspace=0.35)
+    fig.subplots_adjust(wspace=0.32)
     save(fig, 'fig3_resources.png')
 
 if __name__ == '__main__':

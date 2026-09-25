@@ -18,33 +18,35 @@ filter itself costs no model calls:
 ## Headline result
 
 200 contracts, 1,600 label cells, 463 labelled vulnerabilities, Claude Opus 5, one call per
-contract. **Arm A** is ordinary practice: the complete contract with a short instruction. **Arm B**
-is the pipeline: the AnchorSlice output with the calibrated prompt.
+contract. Three arms separate what each component of AnchorSlice contributes. **Arm A** is ordinary
+practice: the complete contract with a one-line instruction per category. **Arm B** keeps the
+complete contract but replaces that instruction with the anchor-derived decision rules. **Arm C** is
+AnchorSlice: the slice and the decision rules together.
 
-| | Arm A · complete source | Arm B · AnchorSlice | Change |
-|---|---|---|---|
-| Tokens | 2,092,914 | 937,754 | **−55.2%** |
-| Cost | $17.75 | $6.45 | **−63.7%** |
-| Wall clock | 4,151 s | 1,673 s | **−59.7%** |
-| F1 vs DIVE labels | 0.342 | 0.693 | +0.351 |
-| Agreement | 0.642 | 0.801 | +0.159 |
-| Cohen's κ | 0.097 | 0.549 | +0.452 |
-| Missed vulnerabilities | 314 | 104 | −210 |
-| False positives | 259 | 214 | −45 |
+| | A · complete source, one-line instruction | B · complete source, decision rules | C · AnchorSlice | C vs B |
+|---|---|---|---|---|
+| Tokens | 2,092,914 | 2,470,113 | 937,754 | **−62.0%** |
+| Cost | $17.75 | $17.52 | $6.45 | **−63.2%** |
+| Wall clock | 4,151 s | 5,363 s | 1,673 s | **−68.8%** |
+| F1 vs DIVE labels | 0.342 | 0.695 | 0.693 | −0.002 |
+| Agreement | 0.642 | 0.797 | 0.801 | +0.004 |
+| Cohen's κ | 0.097 | 0.547 | 0.549 | +0.002 |
+| Missed vulnerabilities | 314 | 92 | 104 | +12 |
+| False positives | 259 | 233 | 214 | −19 |
 
-Paired McNemar over 1,600 cells: p ≈ 3.7 × 10⁻²⁶. On the 130 contracts that played no part in
-developing the method the result is unchanged (F1 0.689). **Evidence retention is 463/463 = 1.00**,
-verified before any model call, at 56.5% of source characters and 7.6 ms per contract.
-
-Holding the prompt fixed and changing only the input, slicing left detection unchanged (p = 1.00)
-while still cutting tokens: the savings come from the slice, the accuracy from the calibrated
-prompt, and the two compose.
+The two components do different jobs, and the paired McNemar test over 1,600 cells says so. The
+decision rules buy the accuracy: A → B is p ≈ 7.1 × 10⁻²⁴. The slicer buys the efficiency at no
+detection cost: B → C is p = 0.57, indistinguishable, while removing 62.0% of the tokens. Against
+ordinary practice the pair doubles the F1-score while spending 55.2% fewer tokens
+(p ≈ 3.7 × 10⁻²⁶). On the 130 contracts that played no part in developing the method the result is
+unchanged (F1 0.689). **Evidence retention is 463/463 = 1.00**, verified before any model call, at
+56.5% of source characters and 7.6 ms per contract.
 
 ## Repository layout
 
 ```
 manuscript/                      IEEE Access LaTeX source and PDF
-manuscript_conference/           7-page conference version (generator, .docx, .pages, PDF)
+manuscript_conference/           7-page conference version (earlier two-arm write-up)
 dive-llm-eval/
 ├── slice.py                     the slicer as first published
 ├── slice2.py                    current slicer (tightened anchors, retention guards)
@@ -79,14 +81,16 @@ All commands run from `dive-llm-eval/`.
 # 1. Inspect the slicer on one contract (no model calls)
 python3 slice2.py data/src50/19288.sol
 
-# 2. The two arms of the 200-contract experiment (results already in results/exp200/final200/)
+# 2. The three arms of the 200-contract experiment (results already in results/exp200/final200/)
 python3 run_eval.py --samples results/exp200/samples_200.json \
-    --out arm1.json --model opus --prompt brief --resume
+    --out armA.json --model opus --prompt brief --resume
 python3 run_eval.py --samples results/exp200/samples_200.json \
-    --out arm2.json --model opus --prompt calibrated5 --slice --slicer slice2 --resume
+    --out armB.json --model opus --prompt calibrated5 --resume
+python3 run_eval.py --samples results/exp200/samples_200.json \
+    --out armC.json --model opus --prompt calibrated5 --slice --slicer slice2 --resume
 
-# 3. Compare the two arms
-python3 compare_ab.py arm1.json arm2.json
+# 3. Compare any pair of arms
+python3 compare_ab.py armB.json armC.json
 
 # 4. Rebuild the manuscripts
 cd ../manuscript && pdflatex AnchorSlice_manuscript.tex && pdflatex AnchorSlice_manuscript.tex

@@ -1,0 +1,224 @@
+[1/200] contract 61 (4700 chars) ...   21.3s     7321 tok  agree 6/8
+[2/200] contract 509 (2358 chars) ...   19.6s    12372 tok  agree 7/8
+[3/200] contract 568 (9133 chars) ...   33.9s     8683 tok  agree 7/8
+[4/200] contract 668 (12064 chars) ...   20.0s    10193 tok  agree 7/8
+[5/200] contract 2968 (2374 chars) ...   19.8s     6450 tok  agree 7/8
+[6/200] contract 3495 (3072 chars) ...   28.1s     7021 tok  agree 5/8
+[7/200] contract 3523 (21995 chars) ...   43.4s    29552 tok  agree 7/8
+[8/200] contract 4704 (10921 chars) ...  341.9s    10487 tok  agree 8/8
+[9/200] contract 4919 (11953 chars) ...   21.3s     9934 tok  agree 5/8
+[10/200] contract 5665 (11595 chars) ...   24.5s    10131 tok  agree 6/8
+[11/200] contract 5951 (17155 chars) ...   59.4s    23164 tok  agree 7/8
+[12/200] contract 6305 (17110 chars) ...   15.3s    11254 tok  agree 7/8
+[13/200] contract 6778 (11532 chars) ...   28.0s    10507 tok  agree 7/8
+[14/200] contract 7383 (11436 chars) ...   25.1s    19109 tok  agree 7/8
+[15/200] contract 7469 (6001 chars) ...   28.2s     8317 tok  agree 6/8
+[16/200] contract 7689 (11728 chars) ...   27.6s    20890 tok  agree 7/8
+[17/200] contract 7701 (12658 chars) ...   35.3s    22494 tok  agree 6/8
+[18/200] contract 7710 (3660 chars) ...   19.6s     6629 tok  agree 7/8
+[19/200] contract 8389 (5993 chars) ...   24.3s    15906 tok  agree 8/8
+[20/200] contract 8577 (8902 chars) ...   22.0s     9225 tok  agree 7/8
+[21/200] contract 9160 (11041 chars) ...   21.9s     9862 tok  agree 6/8
+[22/200] contract 9400 (16509 chars) ...   27.6s    24499 tok  agree 6/8
+[23/200] contract 9837 (3522 chars) ...   22.4s    13269 tok  agree 6/8
+[24/200] contract 10030 (10116 chars) ...   21.9s     9450 tok  agree 7/8
+[25/200] contract 10031 (13291 chars) ...   23.8s    10966 tok  agree 8/8
+[26/200] contract 10111 (17906 chars) ...   20.2s    12650 tok  agree 6/8
+[27/200] contract 10363 (16372 chars) ...   22.5s    23945 tok  agree 8/8
+[28/200] contract 11108 (8721 chars) ...   27.4s     9316 tok  agree 6/8
+[29/200] contract 11242 (8900 chars) ...   17.4s     8267 tok  agree 8/8
+[30/200] contract 11577 (4562 chars) ...   22.9s     7195 tok  agree 6/8
+[31/200] contract 11664 (11794 chars) ...   22.6s    10375 tok  agree 7/8
+[32/200] contract 11770 (27687 chars) ...   34.0s    16663 tok  agree 7/8
+[33/200] contract 12068 (4827 chars) ...   27.0s    14760 tok  agree 7/8
+[34/200] contract 12191 (11683 chars) ...   15.6s     9900 tok  agree 7/8
+[35/200] contract 13761 (10817 chars) ...   23.4s     9756 tok  agree 7/8
+[36/200] contract 13910 (10086 chars) ...   20.7s     9883 tok  agree 8/8
+[37/200] contract 15871 (14865 chars) ...   27.8s    11484 tok  agree 7/8
+[38/200] contract 16156 (8505 chars) ...   21.6s     8786 tok  agree 6/8
+[39/200] contract 16457 (13580 chars) ...   14.4s    10733 tok  agree 7/8
+[40/200] contract 16751 (11848 chars) ...   18.5s    10169 tok  agree 6/8
+[41/200] contract 17113 (23342 chars) ...   19.8s    14930 tok  agree 7/8
+[42/200] contract 17537 (13128 chars) ...   22.7s    10720 tok  agree 8/8
+[43/200] contract 18565 (5671 chars) ...   22.7s     7814 tok  agree 6/8
+[44/200] contract 18668 (18002 chars) ...   23.5s    13144 tok  agree 5/8
+[45/200] contract 18981 (16169 chars) ...   16.6s    11327 tok  agree 6/8
+[46/200] contract 19099 (6081 chars) ...   25.6s    15421 tok  agree 6/8
+[47/200] contract 19147 (4348 chars) ...   18.1s     6850 tok  agree 7/8
+[48/200] contract 19288 (4320 chars) ...   26.7s    15498 tok  agree 7/8
+[49/200] contract 19417 (11605 chars) ...   18.0s     9817 tok  agree 6/8
+[50/200] contract 20827 (16405 chars) ...   22.1s    11967 tok  agree 8/8
+[51/200] contract 1029 (16409 chars) ...   19.1s    11812 tok  agree 7/8
+[52/200] contract 4983 (9801 chars) ...   30.2s    19255 tok  agree 7/8
+[53/200] contract 6014 (11729 chars) ...   17.3s    10048 tok  agree 5/8
+[54/200] contract 6067 (1647 chars) ...   25.1s     6626 tok  agree 5/8
+[55/200] contract 6875 (10530 chars) ...   30.9s    20638 tok  agree 7/8
+[56/200] contract 7639 (21157 chars) ...   15.2s    12774 tok  agree 7/8
+[57/200] contract 9413 (17044 chars) ...   19.8s    12125 tok  agree 6/8
+[58/200] contract 9629 (26792 chars) ...   18.0s    15029 tok  agree 4/8
+[59/200] contract 9755 (3951 chars) ...   19.8s     6914 tok  agree 8/8
+[60/200] contract 9895 (15399 chars) ...   20.9s    11987 tok  agree 6/8
+[61/200] contract 9979 (5806 chars) ...   22.5s    14663 tok  agree 6/8
+[62/200] contract 11478 (12410 chars) ...   27.7s    10783 tok  agree 7/8
+[63/200] contract 12518 (3113 chars) ...   16.7s     6360 tok  agree 6/8
+[64/200] contract 12919 (23221 chars) ...   27.2s    14607 tok  agree 6/8
+[65/200] contract 13987 (12148 chars) ...   23.5s    10446 tok  agree 7/8
+[66/200] contract 14216 (21200 chars) ...   22.4s    12969 tok  agree 7/8
+[67/200] contract 15932 (7609 chars) ...   23.0s     8220 tok  agree 5/8
+[68/200] contract 16722 (7650 chars) ...   25.7s    17465 tok  agree 6/8
+[69/200] contract 17956 (22014 chars) ...   36.4s    29222 tok  agree 6/8
+[70/200] contract 18400 (14366 chars) ...   19.6s    11339 tok  agree 6/8
+[71/200] contract 304 (12132 chars) ...   29.7s    21020 tok  agree 5/8
+[72/200] contract 343 (11398 chars) ...   35.0s    21286 tok  agree 5/8
+[73/200] contract 351 (1413 chars) ...   14.7s     5679 tok  agree 8/8
+[74/200] contract 782 (11532 chars) ...   25.7s    10132 tok  agree 7/8
+[75/200] contract 961 (20715 chars) ...   20.1s    30009 tok  agree 6/8
+[76/200] contract 1267 (6520 chars) ...   14.2s     7418 tok  agree 6/8
+[77/200] contract 1465 (8330 chars) ...   80.0s     8998 tok  agree 7/8
+[78/200] contract 1552 (1560 chars) ...   16.3s     5974 tok  agree 7/8
+[79/200] contract 1743 (8868 chars) ...   18.7s     8938 tok  agree 7/8
+[80/200] contract 1815 (16225 chars) ...   26.0s    12059 tok  agree 5/8
+[81/200] contract 1914 (17293 chars) ...   22.1s    12470 tok  agree 4/8
+[82/200] contract 2192 (4273 chars) ...   13.0s     7016 tok  agree 6/8
+[83/200] contract 2663 (8587 chars) ...   23.0s     9366 tok  agree 5/8
+[84/200] contract 2722 (17680 chars) ...   19.9s    12525 tok  agree 7/8
+[85/200] contract 2944 (17086 chars) ...   17.1s    12294 tok  agree 6/8
+[86/200] contract 3310 (24700 chars) ...   52.0s    29240 tok  agree 8/8
+[87/200] contract 3455 (3207 chars) ...   18.1s     6466 tok  agree 5/8
+[88/200] contract 3466 (2723 chars) ...   26.5s    13982 tok  agree 6/8
+[89/200] contract 3549 (12162 chars) ...   19.0s    10167 tok  agree 7/8
+[90/200] contract 3607 (12213 chars) ...   89.9s    20770 tok  agree 6/8
+[91/200] contract 3655 (23663 chars) ...   20.6s    15690 tok  agree 6/8
+[92/200] contract 4012 (25557 chars) ...   24.4s    30488 tok  agree 7/8
+[93/200] contract 4028 (9135 chars) ...   15.6s     8455 tok  agree 6/8
+[94/200] contract 4358 (6210 chars) ...   17.0s     7494 tok  agree 6/8
+[95/200] contract 4399 (6475 chars) ...   16.4s     7645 tok  agree 7/8
+[96/200] contract 4869 (11435 chars) ...   20.8s    19010 tok  agree 7/8
+[97/200] contract 5660 (13884 chars) ...   23.4s    11307 tok  agree 6/8
+[98/200] contract 5664 (9699 chars) ...   27.6s     9739 tok  agree 5/8
+[99/200] contract 5678 (3128 chars) ...   17.3s     6472 tok  agree 8/8
+[100/200] contract 5700 (11672 chars) ...   19.2s     9590 tok  agree 8/8
+[101/200] contract 5935 (4156 chars) ...   21.8s     7280 tok  agree 5/8
+[102/200] contract 6109 (17411 chars) ...   24.4s    13224 tok  agree 8/8
+[103/200] contract 6273 (9493 chars) ...   28.6s    20285 tok  agree 6/8
+[104/200] contract 6377 (4804 chars) ...   21.5s     7446 tok  agree 7/8
+[105/200] contract 6515 (13721 chars) ...   25.6s    22943 tok  agree 8/8
+[106/200] contract 6517 (11795 chars) ...   20.9s    10211 tok  agree 6/8
+[107/200] contract 6572 (2116 chars) ...   68.2s     6195 tok  agree 5/8
+[108/200] contract 6580 (17007 chars) ...   24.3s    24840 tok  agree 6/8
+[109/200] contract 6634 (25803 chars) ...  180.9s    16576 tok  agree 6/8
+[110/200] contract 6966 (5479 chars) ...   22.6s    14872 tok  agree 5/8
+[111/200] contract 7277 (11885 chars) ...   19.8s    10246 tok  agree 6/8
+[112/200] contract 7319 (11055 chars) ...   21.5s    10186 tok  agree 8/8
+[113/200] contract 7369 (17132 chars) ...   17.8s    12246 tok  agree 6/8
+[114/200] contract 7490 (3043 chars) ...   19.3s     6739 tok  agree 6/8
+[115/200] contract 7727 (3356 chars) ...   15.4s     6294 tok  agree 6/8
+[116/200] contract 7827 (2946 chars) ...   18.4s     6784 tok  agree 7/8
+[117/200] contract 7856 (26301 chars) ...   39.6s    33088 tok  agree 3/8
+[118/200] contract 8189 (11518 chars) ...   20.1s     9901 tok  agree 7/8
+[119/200] contract 8235 (23174 chars) ...   25.6s    14353 tok  agree 6/8
+[120/200] contract 8626 (14797 chars) ...  173.1s    11029 tok  agree 5/8
+[121/200] contract 8941 (7705 chars) ...   15.1s     7725 tok  agree 7/8
+[122/200] contract 9361 (8266 chars) ...   14.8s     8060 tok  agree 7/8
+[123/200] contract 9377 (11619 chars) ...   23.0s    10148 tok  agree 6/8
+[124/200] contract 9437 (11286 chars) ...   19.8s     9834 tok  agree 6/8
+[125/200] contract 9505 (21164 chars) ...   23.1s    12984 tok  agree 7/8
+[126/200] contract 9562 (17884 chars) ...   20.5s    12724 tok  agree 4/8
+[127/200] contract 9650 (7426 chars) ...   18.6s     7890 tok  agree 7/8
+[128/200] contract 9702 (9717 chars) ...   22.3s     9426 tok  agree 5/8
+[129/200] contract 9791 (17162 chars) ...   21.0s    12266 tok  agree 7/8
+[130/200] contract 9857 (16151 chars) ...   66.1s    12047 tok  agree 6/8
+[131/200] contract 9882 (5625 chars) ...   21.9s     7381 tok  agree 7/8
+[132/200] contract 9892 (2969 chars) ...   19.2s     6734 tok  agree 7/8
+[133/200] contract 10226 (5296 chars) ...   19.1s     7383 tok  agree 6/8
+[134/200] contract 10537 (12660 chars) ...   15.3s     9935 tok  agree 7/8
+[135/200] contract 10569 (5759 chars) ...   30.7s    15510 tok  agree 7/8
+[136/200] contract 10985 (6750 chars) ...   19.9s     8228 tok  agree 8/8
+[137/200] contract 11024 (7001 chars) ...   18.9s     8151 tok  agree 6/8
+[138/200] contract 11030 (8199 chars) ...   31.9s     9652 tok  agree 6/8
+[139/200] contract 11099 (11490 chars) ...   25.3s    20410 tok  agree 8/8
+[140/200] contract 11261 (1301 chars) ...   15.2s     5769 tok  agree 5/8
+[141/200] contract 11266 (28109 chars) ...   19.9s    15938 tok  agree 4/8
+[142/200] contract 11354 (26276 chars) ...   20.7s    15074 tok  agree 7/8
+[143/200] contract 11585 (16253 chars) ...   30.3s    24735 tok  agree 6/8
+[144/200] contract 11618 (11514 chars) ...   21.8s    20118 tok  agree 6/8
+[145/200] contract 12167 (4526 chars) ...   17.0s     7121 tok  agree 6/8
+[146/200] contract 12212 (11928 chars) ...   18.6s    10003 tok  agree 7/8
+[147/200] contract 12302 (9501 chars) ...   20.3s     9081 tok  agree 5/8
+[148/200] contract 12377 (8287 chars) ...   22.8s     8845 tok  agree 7/8
+[149/200] contract 12404 (22547 chars) ...   21.4s    14203 tok  agree 3/8
+[150/200] contract 12589 (2429 chars) ...   22.9s     6624 tok  agree 7/8
+[151/200] contract 12648 (5202 chars) ...   16.1s     6856 tok  agree 7/8
+[152/200] contract 12653 (7121 chars) ...   15.8s     7800 tok  agree 5/8
+[153/200] contract 12886 (10886 chars) ...   20.3s     9604 tok  agree 3/8
+[154/200] contract 12910 (6404 chars) ...   33.4s    17754 tok  agree 7/8
+[155/200] contract 13172 (6948 chars) ...   20.8s    16550 tok  agree 7/8
+[156/200] contract 13255 (11938 chars) ...   16.3s     9585 tok  agree 8/8
+[157/200] contract 13394 (10639 chars) ...   26.2s     9744 tok  agree 6/8
+[158/200] contract 13707 (13360 chars) ...   27.3s    11347 tok  agree 7/8
+[159/200] contract 13726 (17015 chars) ...   26.0s    12662 tok  agree 7/8
+[160/200] contract 13967 (9860 chars) ...   18.1s     9121 tok  agree 7/8
+[161/200] contract 14274 (15727 chars) ...   13.2s    10728 tok  agree 7/8
+[162/200] contract 14288 (11976 chars) ...   19.2s    10051 tok  agree 5/8
+[163/200] contract 14499 (22280 chars) ...   27.2s    14264 tok  agree 6/8
+[164/200] contract 14546 (10204 chars) ...   29.4s    19078 tok  agree 7/8
+[165/200] contract 14953 (5390 chars) ...   23.1s     7800 tok  agree 6/8
+[166/200] contract 15838 (10102 chars) ...   43.1s    10063 tok  agree 5/8
+[167/200] contract 15980 (16190 chars) ...   14.1s    10931 tok  agree 8/8
+[168/200] contract 16147 (5144 chars) ...   22.8s     7391 tok  agree 7/8
+[169/200] contract 16674 (11815 chars) ...   23.2s    20146 tok  agree 7/8
+[170/200] contract 16767 (2715 chars) ...   19.0s     6430 tok  agree 6/8
+[171/200] contract 16804 (11155 chars) ...   20.5s     9877 tok  agree 6/8
+[172/200] contract 17045 (27553 chars) ...   19.2s    15678 tok  agree 4/8
+[173/200] contract 17347 (10714 chars) ...   22.2s     9585 tok  agree 7/8
+[174/200] contract 17922 (5133 chars) ...   22.8s    15508 tok  agree 8/8
+[175/200] contract 18212 (16085 chars) ...   20.2s    11613 tok  agree 6/8
+[176/200] contract 18332 (11327 chars) ...   24.6s     9858 tok  agree 5/8
+[177/200] contract 18348 (16940 chars) ...   27.0s    12261 tok  agree 4/8
+[178/200] contract 18773 (9981 chars) ...   18.8s     9197 tok  agree 6/8
+[179/200] contract 18836 (10862 chars) ...   16.9s     9491 tok  agree 6/8
+[180/200] contract 18862 (12173 chars) ...   19.7s    10208 tok  agree 7/8
+[181/200] contract 18953 (13122 chars) ...   29.6s    10944 tok  agree 8/8
+[182/200] contract 19056 (5147 chars) ...   21.9s     7781 tok  agree 5/8
+[183/200] contract 19345 (17466 chars) ...   26.3s    25520 tok  agree 4/8
+[184/200] contract 19433 (11922 chars) ...   25.1s    20460 tok  agree 7/8
+[185/200] contract 19463 (28277 chars) ...   19.0s    15980 tok  agree 7/8
+[186/200] contract 19522 (17122 chars) ...   27.1s    24731 tok  agree 6/8
+[187/200] contract 19550 (11683 chars) ...   28.4s    20609 tok  agree 6/8
+[188/200] contract 19624 (2684 chars) ...   13.3s     6176 tok  agree 7/8
+[189/200] contract 19625 (4270 chars) ...   20.4s    13773 tok  agree 6/8
+[190/200] contract 19688 (4415 chars) ...   19.9s     7140 tok  agree 5/8
+[191/200] contract 19719 (11027 chars) ...   19.6s     9794 tok  agree 6/8
+[192/200] contract 19838 (2066 chars) ...   16.5s     6132 tok  agree 8/8
+[193/200] contract 19961 (17013 chars) ...   25.2s    12484 tok  agree 6/8
+[194/200] contract 19983 (12465 chars) ...   28.8s    10562 tok  agree 7/8
+[195/200] contract 20480 (5669 chars) ...   21.3s     7455 tok  agree 8/8
+[196/200] contract 20981 (15554 chars) ...   18.6s    10671 tok  agree 6/8
+[197/200] contract 21110 (11103 chars) ...   19.6s     9919 tok  agree 8/8
+[198/200] contract 21487 (13694 chars) ...   20.1s    11710 tok  agree 7/8
+[199/200] contract 21496 (17033 chars) ...   16.7s    11991 tok  agree 6/8
+[200/200] contract 21552 (17233 chars) ...   23.1s    12327 tok  agree 7/8
+
+==========================================================================
+Model opus (effort=high, prompt=calibrated5) vs DIVE labels - 200 contracts
+==========================================================================
+Label agreement    : 0.7969  (1275/1600 label cells)
+Exact match (8/8)  : 25/200
+Hamming loss       : 0.2031
+
+category                 DIVE+  LLM+  TP  FP  FN   agree   kappa
+Reentrancy                  98   140  97  43   1   0.780   0.564
+Access Control             144   178 132  46  12   0.710   0.117
+Arithmetic                  84   114  56  58  28   0.570   0.159
+Unchecked Return Values     38    32  28   4  10   0.930   0.758
+DoS                         26    22  10  12  16   0.860   0.338
+Bad Randomness              16     8   7   1   9   0.950   0.560
+Front Running               15    16   0  16  15   0.845  -0.084
+Time manipulation           42    94  41  53   1   0.730   0.441
+
+Wall clock         : 5368.78s total, 26.83s/contract
+API time (CLI)     : 4594.7s
+Tokens             : 2470113 total (in 490, out 247721, cache-write 1072752, cache-read 1149150)
+Cost               : $17.5184
+
+Full results -> final200/armB_full_cal5.json
