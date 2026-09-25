@@ -45,7 +45,6 @@ unchanged (F1 0.689). **Evidence retention is 463/463 = 1.00**, verified before 
 ## Repository layout
 
 ```
-manuscript/                      IEEE Access LaTeX source and PDF
 manuscript_conference/           7-page conference version (earlier two-arm write-up)
 dive-llm-eval/
 ├── slice.py                     the slicer as first published
@@ -92,9 +91,8 @@ python3 run_eval.py --samples results/exp200/samples_200.json \
 # 3. Compare any pair of arms
 python3 compare_ab.py armB.json armC.json
 
-# 4. Rebuild the manuscripts
-cd ../manuscript && pdflatex AnchorSlice_manuscript.tex && pdflatex AnchorSlice_manuscript.tex
-cd ../manuscript_conference && python3 build_conference.py
+# 4. Redraw the paper figures
+python3 make_figures.py
 ```
 
 `run_eval.py --resume` continues an interrupted run without repeating completed contracts.

@@ -25,3 +25,6 @@ dive-llm-eval/data/DIVE_Raw_Data.zip
 dive-llm-eval/data/DIVE_Raw_Data.zip
 *.fls
 *.fdb_latexmk
+
+# Manuscript (unpublished -- kept out of the repo)
+manuscript/
